@@ -46,16 +46,16 @@ bool AirborneRadarQC::processSweeps()
 			
 			printf("Processing file %d\n", f);
 			
-			thresholdData("NCP", "ZZ", 0.2);
-			thresholdData("NCP","VV", 0.2);
+			thresholdData("NCP", "ZZ", 0.2, "below");
+			thresholdData("NCP","VV", 0.2, "below");
 			
 			probGroundGates("GG", 2.0);
-			thresholdData("GG","ZZ", 70.0);
-			thresholdData("GG","VV", 70.0);
+			thresholdData("GG","ZZ", 70.0, "above");
+			thresholdData("GG","VV", 70.0, "above");
 			
 			calcRatio("SW", "ZZ", "SWZ", true);
-			thresholdData("SWZ","ZZ", 0.6);
-			thresholdData("SWZ","VV", 0.6);
+			thresholdData("SWZ","ZZ", 0.6, "above");
+			thresholdData("SWZ","VV", 0.6, "above");
 			
 			despeckleAzimuthal("ZZ", 2);
 			despeckleAzimuthal("VV", 2);
