@@ -1,0 +1,8 @@
+build/*
+libs/*
+Info.plist
+*.xcodeproj/*
+*.app/*
+.svn
+.DS_Store
+profile
