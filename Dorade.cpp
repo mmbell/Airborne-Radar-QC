@@ -18,15 +18,15 @@ Dorade::Dorade()
 	cfptr = new cfac_info;
 	pptr = new parm_info[20];
 	sptr = new swib_info;
-	ryptr = new ryib_info[500];
-	aptr = new asib_info[500];
+	ryptr = new ryib_info[1000];
+	aptr = new asib_info[1000];
 	dptr = new rdat_info*[20];
 	for (int i=0; i<20; i++) {
-		dptr[i] = new rdat_info[500];
+		dptr[i] = new rdat_info[1000];
 	}
-	rangles = new radar_angles[500];
+	rangles = new radar_angles[1000];
 	rkptr = new rktb_info;
-	rtptr = new rot_table_entry[500];
+	rtptr = new rot_table_entry[1000];
 	refIndex = velIndex = swIndex = 0;
 	ref_fld = "DBZ";
 	vel_fld = "VG";
@@ -44,15 +44,15 @@ Dorade::Dorade(const QString& swpFilename)
 	cfptr = new cfac_info;
 	pptr = new parm_info[20];
 	sptr = new swib_info;
-	ryptr = new ryib_info[500];
-	aptr = new asib_info[500];
+	ryptr = new ryib_info[1000];
+	aptr = new asib_info[1000];
 	dptr = new rdat_info*[20];
 	for (int i=0; i<20; i++) {
-		dptr[i] = new rdat_info[500];
+		dptr[i] = new rdat_info[1000];
 	}
-	rangles = new radar_angles[500];
+	rangles = new radar_angles[1000];
 	rkptr = new rktb_info;
-	rtptr = new rot_table_entry[500];
+	rtptr = new rot_table_entry[1000];
 	refIndex = velIndex = swIndex = 0;
 	ref_fld = "DBZ";
 	vel_fld = "VG";
@@ -377,6 +377,14 @@ void Dorade::recalculateAirborneAngles()
 		}
 	}
 
+}
+
+double Dorade::getAircraftVelocity(const int& ray)
+{
+	double vr = 0;
+	if ((ray >= 0) and (ray < sptr->num_rays))
+		vr = calcAircraftMotion(&aptr[ray], cfptr, &rangles[ray]);
+	return vr;	
 }
 
 bool Dorade::copyField(const QString& oldFieldName, const QString& newFieldName, 
@@ -1505,72 +1513,135 @@ int Dorade::dd_compress(unsigned short *src, unsigned short *dst, unsigned short
 void Dorade::calcAirborneAngles(struct asib_info *asib, struct cfac_info *cfac, struct ryib_info* ra, 
 								struct radar_angles *angles)
 {
-    /* compute the true azimuth, elevation, etc. from platform
-     * parameters using Testud's equations with their different
-     * definitions of rotation angle, etc.
-     */
-    double R, H, P, D, T, theta_a, tau_a, lambda_t;
-    double sinP, cosP, sinT, cosT, sinD, cosD;
-    double sin_theta_rc, cos_theta_rc, sin_tau_a, cos_tau_a;
-    double xsubt, ysubt, zsubt;
+	/* compute the true azimuth, elevation, etc. from platform
+	 * parameters using Testud's equations with their different
+	 * definitions of rotation angle, etc.
+	 */
+	double R, H, P, D, T, theta_a, tau_a, lambda_t;
+	double sinP, cosP, sinT, cosT, sinD, cosD;
+	double sin_theta_rc, cos_theta_rc, sin_tau_a, cos_tau_a;
+	double xsubt, ysubt, zsubt;
 	
-    double d;
- 	/*
-     * see Wen-Chau Lee's paper
-     * "Mapping of the Airborne Doppler Radar Data"
-     */
-    d = asib->roll;
-    R = d != d ? 0 : RADIANS(d +cfac->c_roll);
+	double d;
+	/*
+	 * see Wen-Chau Lee's paper
+	 * "Mapping of the Airborne Doppler Radar Data"
+	 */
+	d = asib->roll;
+	R = d != d ? 0 : RADIANS(d +cfac->c_roll);
 	
-    d = asib->pitch;
-    P = d != d ? 0 : RADIANS(d +cfac->c_pitch);
+	d = asib->pitch;
+	P = d != d ? 0 : RADIANS(d +cfac->c_pitch);
 	
-    d = asib->head;
-    H = d != d ? 0 : RADIANS(d +cfac->c_head);
+	d = asib->head;
+	H = d != d ? 0 : RADIANS(d +cfac->c_head);
 	
-    d = asib->drift;
-    D = d != d ? 0 : RADIANS(d +cfac->c_drift);
+	d = asib->drift;
+	D = d != d ? 0 : RADIANS(d +cfac->c_drift);
 	
-    sinP = sin(P);
-    cosP = cos(P);
-    sinD = sin(D);
-    cosD = cos(D);
-    
-    T = H + D;
+	sinP = sin(P);
+	cosP = cos(P);
+	sinD = sin(D);
+	cosD = cos(D);
+	
+	T = H + D;
 		
-    sinT = sin(T);
-    cosT = cos(T);
+	sinT = sin(T);
+	cosT = cos(T);
 	
-    d = asib->rot_ang;
-    theta_a = d != d ? 0 : RADIANS(d +cfac->c_rotang);
-    
-    d = asib->tilt_ang;
-    tau_a = d != d ? 0 : RADIANS(d +cfac->c_tiltang);
-    sin_tau_a = sin(tau_a);
-    cos_tau_a = cos(tau_a);
-    sin_theta_rc = sin(theta_a + R); /* roll corrected rotation angle */
-    cos_theta_rc = cos(theta_a + R); /* roll corrected rotation angle */
+	d = asib->rot_ang;
+	theta_a = d != d ? 0 : RADIANS(d +cfac->c_rotang);
 	
-    angles->x = xsubt = (cos_theta_rc * sinD * cos_tau_a * sinP
+	d = asib->tilt_ang;
+	tau_a = d != d ? 0 : RADIANS(d +cfac->c_tiltang);
+	sin_tau_a = sin(tau_a);
+	cos_tau_a = cos(tau_a);
+	sin_theta_rc = sin(theta_a + R); /* roll corrected rotation angle */
+	cos_theta_rc = cos(theta_a + R); /* roll corrected rotation angle */
+	
+	angles->x = xsubt = (cos_theta_rc * sinD * cos_tau_a * sinP
 					 + cosD * sin_theta_rc * cos_tau_a
 					 -sinD * cosP * sin_tau_a);
-    angles->y = ysubt = (-cos_theta_rc * cosD * cos_tau_a * sinP
+	angles->y = ysubt = (-cos_theta_rc * cosD * cos_tau_a * sinP
 					 + sinD * sin_theta_rc * cos_tau_a
 					 + cosP * cosD * sin_tau_a);
-    angles->z = zsubt = (cosP * cos_tau_a * cos_theta_rc
+	angles->z = zsubt = (cosP * cos_tau_a * cos_theta_rc
 					 + sinP * sin_tau_a);
 	
-    angles->rotation_angle = atan2(xsubt, zsubt); // theta_t 
-    angles->tilt = asin(ysubt); // tau_t
-    lambda_t = atan2(xsubt, ysubt);
+	angles->rotation_angle = atan2(xsubt, zsubt); // theta_t 
+	angles->tilt = asin(ysubt); // tau_t
+	lambda_t = atan2(xsubt, ysubt);
 	double azrad = fmod(lambda_t + T, 6.283185307);
 	double elrad = asin(zsubt);
 	
-    angles->azimuth = ra->azimuth = FMOD360(DEGREES(azrad)+360.);
+	angles->azimuth = ra->azimuth = FMOD360(DEGREES(azrad)+360.);
 	angles->elevation = ra->elevation = DEGREES(elrad);    
 	return;
 	
 }
+
+
+double Dorade::calcAircraftMotion(struct asib_info *asib, struct cfac_info *cfac, struct radar_angles *angles)
+{
+	/* compute the true azimuth, elevation, etc. from platform
+	 * parameters using Testud's equations with their different
+	 * definitions of rotation angle, etc.
+	 */
+	double R, H, P, D;
+	double sinP, cosP, sinH, cosH;
+	//double sinD, cosD, T, sinT, cosT;
+	double cosLAM, sinLAM, cosPHI, sinPHI;
+	double L, d, PIOVR2;
+	double gndspeed, aircraft_vr, antenna_vr;
+
+	/*
+	 * see Wen-Chau Lee's paper
+	 * "Mapping of the Airborne Doppler Radar Data"
+	 */
+	
+	/* We assume the angles have been transformed via the track relative coordinate transform
+	 in the above subroutine */
+
+	PIOVR2 = acos(-1) / 2.;
+
+	// Momentum arm for Electra/P3
+	L = 29.8;
+	d = asib->roll;
+	R = d != d ? 0 : RADIANS(d +cfac->c_roll);
+	
+	d = asib->pitch;
+	P = d != d ? 0 : RADIANS(d +cfac->c_pitch);
+	
+	// In practice, the heading correction is not used only the drift corr, so does this lead to an error?
+	d = asib->head;
+	H = d != d ? 0 : RADIANS(d +cfac->c_head);
+	
+	d = asib->drift;
+	D = d != d ? 0 : RADIANS(d +cfac->c_drift);
+	
+	sinP = sin(P);
+	cosP = cos(P);
+	sinH = sin(H);
+	cosH = cos(H);
+	cosLAM = cos((PIOVR2 - angles->azimuth));
+	sinLAM = sin((PIOVR2 - angles->azimuth));
+	cosPHI = cos(angles->elevation);
+	sinPHI = sin(angles->elevation);
+
+	gndspeed = sqrt((asib->ew_gspeed * asib->ew_gspeed) + (asib->ns_gspeed * asib->ns_gspeed));
+	aircraft_vr = sin(angles->tilt) * (gndspeed + cfac->c_ew_grspeed) + sin(angles->elevation) * asib->vert_vel;
+	
+	antenna_vr =  L*
+	((1.+cosP)*(cosPHI*cosLAM*cosH -cosPHI*sinLAM*sinH)*
+	 (RADIANS(asib->head_change))
+	 -(sinP*(cosPHI*cosLAM*sinH +cosPHI*sinLAM*cosH)
+	   -sinPHI*cosP)*RADIANS(asib->pitch_change));
+	antenna_vr = 0;
+	double vr = aircraft_vr - antenna_vr;
+	return vr;
+	
+}
+
 
 	
 	

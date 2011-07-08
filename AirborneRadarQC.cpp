@@ -32,8 +32,6 @@ AirborneRadarQC::~AirborneRadarQC()
 // This is the main driver for the data processing
 bool AirborneRadarQC::processSweeps()
 {
-	QStringList edgefields;
-	edgefields << "DBZ";
 	
 	// Do some QC
 	if (!getfileListsize()) {
@@ -46,22 +44,27 @@ bool AirborneRadarQC::processSweeps()
 			
 			printf("Processing file %d\n", f);
 			
-			thresholdData("NCP", "ZZ", 0.2, "below");
-			thresholdData("NCP","VV", 0.2, "below");
+			setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
+			setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
+			removeAircraftMotion("VR", "VQC");
 			
-			probGroundGates("GG", 2.0);
-			thresholdData("GG","ZZ", 70.0, "above");
-			thresholdData("GG","VV", 70.0, "above");
+			thresholdData("NCP", "ZZ", 0.2, "below");
+			thresholdData("NCP","VQC", 0.2, "below");
+			
+			probGroundGates("ZZ", "GG", 2.0);
+			thresholdData("GG","ZZ", 0.7, "above");
+			thresholdData("GG","VQC", 0.7, "above");
 			
 			calcRatio("SW", "ZZ", "SWZ", true);
 			thresholdData("SWZ","ZZ", 0.6, "above");
-			thresholdData("SWZ","VV", 0.6, "above");
-			
-			despeckleAzimuthal("ZZ", 2);
-			despeckleAzimuthal("VV", 2);
+			thresholdData("SWZ","VQC", 0.6, "above");
+
 			despeckleRadial("ZZ", 2);
-			despeckleRadial("VV", 2);
-						
+			despeckleRadial("VQC", 2);
+
+			despeckleAzimuthal("ZZ", 2);
+			despeckleAzimuthal("VQC", 2);
+			
 			// Dump the data to compare the fore and aft radars to a text file
 			//QC.dumpFLwind();
 			
@@ -222,22 +225,24 @@ void AirborneRadarQC::thresholdData(const QString& threshfield, const QString& f
  ****************************************************************************************/
 void AirborneRadarQC::despeckleRadial(const QString& fldname, const int& speckle)
 {
-	for (int i=0; i < swpfile.getNumRays(); i++) {
+	int rays = swpfile.getNumRays();
+	int gates = swpfile.getNumGates();
+	for (int i=0; i < rays; i++) {
 		// Get the data
 		float* data = swpfile.getRayData(i, fldname);
 		int n = 0;
-		while (n < swpfile.getNumGates()) {
+		while (n < gates) {
 			// Found a good gate, go forward to look for bad flag
 			if (data[n] != -32768.) {
 				int m = 0;
 				int s = n;
-				while (data[n] != -32768.) {
+				while ((n < gates) and (data[n] != -32768.)) {
 					n++; m++;
 				}
 				// Found a bad flag, check m
 				if (m > speckle) continue;
 				// Found a speckle
-				while(s <= n) {
+				while((s < gates) and (s <= n)) {
 					data[s] = -32768.;
 					s++;
 				}
@@ -250,38 +255,64 @@ void AirborneRadarQC::despeckleRadial(const QString& fldname, const int& speckle
  ** despeckleAzimuth : Flag isolated gates less than speckle in the azimuthal direction
  ****************************************************************************************/
 void AirborneRadarQC::despeckleAzimuthal(const QString& fldname, const int& speckle)
-{
-	for (int n=0; n < swpfile.getNumGates(); n++) {
+{	
+	
+	// Allocate memory for the despeckling field
+	int rays = swpfile.getNumRays();
+	int gates = swpfile.getNumGates();
+	float** data = new float*[rays];
+	for (int i=0; i < rays; i++)  {
+		data[i] = new float[gates];
+	}
+		
+	this->swpField2array(fldname, data);
+	 
+	for (int n=0; n < gates; n++) {
 		int i = 0;
-		while (i < swpfile.getNumRays()) {
-			float* d1 = swpfile.getRayData(i, fldname);
-			
+		while (i < rays) {
 			// Found a good gate, go forward to look for bad flag
-			if (d1[n] != -32768) {
+			if (data[i][n] != -32768.) {
 				int m = 0;
 				int s = i;
-				while (i < swpfile.getNumRays()) {
-					float* d2 = swpfile.getRayData(i, fldname);
-					if (d2[n] < -32000.) { 
-						break; 
-					}
+				while ((i < rays) and (data[i][n] != -32768.)) {
 					i++; m++;
 				}
 				// Found a bad flag, check m
-				if (m > speckle) {
-					i++;
-					continue;
-				}
+				if (m > speckle) continue;
 				// Found a speckle
-				while (s < i) {
-					float* data = swpfile.getRayData(s, fldname);
-					data[n] = -32768.;
+				while((s < rays) and (s <= i)) {
+					data[s][n] = -32768.;
 					s++;
 				}
-			}
-			else { i++; }
+			} else { i++; }
 		}
 	}
+		
+	/* For some strange reason, this causes an intermittent crash 
+	 but the following always appears to crash despite the fact that
+	 the only difference is the local rays and gates variables.
+	 There is a bug somewhere that I don't understand - MMB */
+	/* for (int i=0; i < rays; i++) {
+		// Get the data
+		float* despeckled = swpfile.getRayData(i, fldname);		
+		for (int n=0; n < gates; n++) {
+			despeckled[n] = data[i][n];
+		}
+	} */
+	
+	for (int i=0; i < swpfile.getNumRays(); i++) {
+		// Get the data
+		float* despeckled = swpfile.getRayData(i, fldname);		
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+			despeckled[n] = data[i][n];
+		}
+	}
+	
+	for (int i=0; i < rays; i++)  {
+		delete[] data[i];
+	}
+	delete[] data;
+	
 }	
 	
 /****************************************************************************************
@@ -387,16 +418,13 @@ void AirborneRadarQC::GaussianSmooth(const QString& oriFieldName, float** field,
 
 void AirborneRadarQC::swpField2array(const QString& oriFieldName, float** field)
 {
-	
-	float* temp = new float[swpfile.getNumGates()];
+
 	for (int i=0; i < swpfile.getNumRays(); i++)  {
 		float* oridata = swpfile.getRayData(i, oriFieldName);
-		float* newdata = field[i];
 		for (int n=0; n < swpfile.getNumGates(); n++) {
-			newdata[n] = oridata[n];
+			field[i][n] = oridata[n];
 		}
 	}
-	delete[] temp;
 	
 }
 
@@ -426,7 +454,7 @@ void AirborneRadarQC::calcRatio(const QString& topFieldName, const QString& bott
 				if (z != 0.0) {
 					float ratio = top[n]/z;
 					if (ratio > 10) ratio = 10;
-					newdata[n] = 1-ratio/10;
+					newdata[n] = ratio/10;
 				} else {
 					newdata[n] = -32768.;
 				}
@@ -805,7 +833,7 @@ void AirborneRadarQC::calcGradientMagnitude(const QString& oriFieldName, const Q
 	for (int i=0; i < swpfile.getNumRays(); i++)  {
 		float* newdata = swpfile.getRayData(i, newFieldName);
 		for (int n=0; n < swpfile.getNumGates(); n++) {
-			if (newdata[n] != -327678.) {
+			if (newdata[n] != -32768.) {
 				newdata[n] = r1[i][n]*r1[i][n] + a1[i][n]*a1[i][n];
 			}
 		}
@@ -2150,8 +2178,86 @@ void AirborneRadarQC::compareFLwind()
 }
 
 /* Remove the aircraft velocity from the Doppler velocity */
-void AirborneRadarQC::removeAircraftMotion() 
+void AirborneRadarQC::removeAircraftMotion(const QString& vrFieldName, const QString& vgFieldName)
 {
+	// Aircraft Doppler velocity calculated following Lee et al. (1994)
+	QString newFieldDesc = "Ground relative velocity";
+	QString newFieldUnits = "m/s";
+	if(!newField(vrFieldName, vgFieldName, newFieldDesc, newFieldUnits)) {
+		printf("Error creating new field!!!\n");
+		return;
+	}
+	
+	double nyquist = swpfile.getNyquistVelocity();
+	for (int i=0; i < swpfile.getNumRays(); i++)  {
+		float* data = swpfile.getRayData(i, vgFieldName);
+		double aircraft_vr = swpfile.getAircraftVelocity(i);
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+			if (data[n] == -32768) continue;
+			double vr = data[n] + aircraft_vr;
+			if (fabs(vr) > nyquist) {
+				// Fold data back into Nyquist range
+				while (vr > nyquist) {
+					vr -= nyquist;
+				}
+				while (vr < -nyquist) {
+					vr += nyquist;
+				}
+			}
+			data[n] = vr;
+		}
+	}
+}
+
+/* Apply a new set of navigation corrections */
+void AirborneRadarQC::setNavigationCorrections(const QString& cfacFileName, const QString& radarName)
+{
+	// Check to see if this is the correct radar
+	if (swpfile.getRadarname() != radarName) return;
+	
+	// Initialize the cfacData
+	float cfacData[16];
+	for (int i = 0; i < 16; i++) cfacData[i] = 0.0;
+	int count = 0;
+	
+	// Load the cfac file
+	QFile cfacFile;
+	QTextStream cfac(&cfacFile);
+	cfacFile.setFileName(cfacFileName);
+	cfacFile.open(QIODevice::ReadOnly);
+	while (!cfac.atEnd()) {
+		QString line = cfac.readLine();
+		QStringList lineparts = line.split(QRegExp("\\s+"));
+		if (lineparts.size() < 3) {
+			printf("Error reading cfac file");
+			return;
+		}
+		cfacData[count] = lineparts[2].toFloat();
+		count++;
+	}	
+	cfacFile.close();
+	
+	// Assign the cfac block
+	cfac_info* cfptr = swpfile.getCfacBlock();
+	cfptr->c_azimuth = cfacData[0];
+	cfptr->c_elevation = cfacData[1];
+	cfptr->c_range_delay = cfacData[2];
+	cfptr->c_rad_lon = cfacData[3];
+	cfptr->c_rad_lat = cfacData[4];
+	cfptr->c_alt_msl = cfacData[5];
+	cfptr->c_alt_agl = cfacData[6];
+	cfptr->c_ew_grspeed = cfacData[7];
+	cfptr->c_ns_grspeed = cfacData[8];
+	cfptr->c_vert_vel = cfacData[9];
+	cfptr->c_head = cfacData[10];
+	cfptr->c_roll = cfacData[11];
+	cfptr->c_pitch = cfacData[12];
+	cfptr->c_drift = cfacData[13];
+	cfptr->c_rotang = cfacData[14];
+	cfptr->c_tiltang = cfacData[15];
+	
+	// Apply the cfacs
+	swpfile.recalculateAirborneAngles();
 	
 }
 
@@ -2782,15 +2888,13 @@ void AirborneRadarQC::soloiiScriptVerification()
  ** groundProbability : This subroutine calculates the probability that a given gate is ground
  using just the beamwidth
  ****************************************************************************************/
-void AirborneRadarQC::probGroundGates(const QString& fldname, const float& eff_beamwidth) 
+void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth) 
 {
 	
 	float earth_radius=6366805.6;
-	QString oldFieldName = "ZZ";
-	QString newFieldName = fldname;
 	QString newFieldDesc = "Ground Gates";
 	QString newFieldUnits = "binary";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
+	if(!newField(oriFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
 		printf("Error creating new field!!!\n");
 		return;
 	}
@@ -2799,7 +2903,7 @@ void AirborneRadarQC::probGroundGates(const QString& fldname, const float& eff_b
 	float max_range = gates[numgates-1];
 	
 	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, fldname);
+		float* data = swpfile.getRayData(i, newFieldName);
 		// Clear the ray
 		for (int n=0; n < numgates; n++) {
 			if (data[n] != -32768.) data[n] = 0;

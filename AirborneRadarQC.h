@@ -90,7 +90,7 @@ public:
 	void flagGroundGates(const QString& fldname, const float& eff_beamwidth);
 	
 	// Probabilities
-	void probGroundGates(const QString& fldname, const float& eff_beamwidth);
+	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth);
 	void calcWeatherProb(const QString& mdbzt_name, const QString& mdbzs_name, const QString& mdbzl_name, const QString& mvgs_name, const QString& mncp_name);
 	void wxProbability2();
 	void mapRefTexture(const QString& fldname);
@@ -104,7 +104,8 @@ public:
 	void compareForeAftRef();
 	void dumpFLwind();
 	void compareFLwind();
-	void removeAircraftMotion();
+	void removeAircraftMotion(const QString& vrFieldName, const QString& vgFieldName);
+	void setNavigationCorrections(const QString& cfacFileName, const QString& radarName);
 
 	// Verification
 	void BrierSkillScore();

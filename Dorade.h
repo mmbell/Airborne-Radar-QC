@@ -59,9 +59,11 @@ public:
 	asib_info* getAircraftBlock(const int& ray);
 	cfac_info* getCfacBlock();
 	ryib_info* getRyibBlock(const int& ray);
+	double getAircraftVelocity(const int& ray);
 	
 	// Editing
 	void recalculateAirborneAngles();
+
 	bool copyField(const QString& oldFieldName,const QString& newFieldName, 
 				   const QString& newFieldDesc,const QString& newFieldUnits);
 	//bool deleteField(const QString& fldname);
@@ -100,7 +102,7 @@ private:
 										  ((*(int *)&(x) & 0x007fffffL) != 0x00000000L)); }; */
 	double RADIANS(double x)  { return ((x)*0.017453292); };
 	double FMOD360(double x)  { return (fmod((double)((x)+720.), (double)360.)); };
-    double DEGREES(double x)  { return ((x)*57.29577951); };
+	double DEGREES(double x)  { return ((x)*57.29577951); };
 	
 	/* PROTOTYPES */
 	void sweepread(const char swp_fname[],struct sswb_info *ssptr, struct vold_info *vptr,
@@ -143,6 +145,8 @@ private:
 	int dd_compress(unsigned short *src, unsigned short *dst, unsigned short flag, int n );
 	void calcAirborneAngles(struct asib_info *asib, struct cfac_info *cfac, struct ryib_info* ra,
 							struct radar_angles *angles);
+	double calcAircraftMotion(struct asib_info *asib, struct cfac_info *cfac, struct radar_angles *angles);
+
 };
 
 #endif
