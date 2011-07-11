@@ -2198,10 +2198,10 @@ void AirborneRadarQC::removeAircraftMotion(const QString& vrFieldName, const QSt
 			if (fabs(vr) > nyquist) {
 				// Fold data back into Nyquist range
 				while (vr > nyquist) {
-					vr -= nyquist;
+					vr -= nyquist*2;
 				}
 				while (vr < -nyquist) {
-					vr += nyquist;
+					vr += nyquist*2;
 				}
 			}
 			data[n] = vr;
