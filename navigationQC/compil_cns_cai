@@ -1,0 +1,1 @@
+gfortran -o cns_eldo_cai cns_eldo_cai.f /home/caihq/navigation/roux_nav/MATHS/chol_inv.o
