@@ -42,10 +42,10 @@ bool AirborneRadarQC::processSweeps()
 	for (int f = 0; f < getfileListsize(); ++f) {
 		if (load(f)) {
 			
-			printf("Processing file %d\n", f);
+			std::cout << "Processing " << swpfile.getFilename().toStdString() << "\n";
 			
-			setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
-			setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
+			//setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
+			//setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
 			removeAircraftMotion("VR", "VQC");
 			
 			thresholdData("NCP", "ZZ", 0.2, "below");

@@ -1604,8 +1604,8 @@ double Dorade::calcAircraftMotion(struct asib_info *asib, struct cfac_info *cfac
 
 	PIOVR2 = acos(-1) / 2.;
 
-	// Momentum arm for Electra/P3
-	L = 29.8;
+	// Momentum arm for Electra is 29.8, NRL P3 is ~27.2
+	L = 27.2;
 	d = asib->roll;
 	R = d != d ? 0 : RADIANS(d +cfac->c_roll);
 	
@@ -1623,20 +1623,22 @@ double Dorade::calcAircraftMotion(struct asib_info *asib, struct cfac_info *cfac
 	cosP = cos(P);
 	sinH = sin(H);
 	cosH = cos(H);
-	cosLAM = cos((PIOVR2 - angles->azimuth));
-	sinLAM = sin((PIOVR2 - angles->azimuth));
-	cosPHI = cos(angles->elevation);
-	sinPHI = sin(angles->elevation);
+	cosLAM = cos(PIOVR2 - RADIANS(angles->azimuth));
+	sinLAM = sin(PIOVR2 - RADIANS(angles->azimuth));
+	cosPHI = cos(RADIANS(angles->elevation));
+	sinPHI = sin(RADIANS(angles->elevation));
 
+	double vert =  asib->vert_vel != -999 ? asib->vert_vel : 0;
 	gndspeed = sqrt((asib->ew_gspeed * asib->ew_gspeed) + (asib->ns_gspeed * asib->ns_gspeed));
-	aircraft_vr = sin(angles->tilt) * (gndspeed + cfac->c_ew_grspeed) + sin(angles->elevation) * asib->vert_vel;
+	aircraft_vr = sin(angles->tilt) * (gndspeed + cfac->c_ew_grspeed) 
+		+ sin(RADIANS(angles->elevation)) * vert;
 	
 	antenna_vr =  L*
 	((1.+cosP)*(cosPHI*cosLAM*cosH -cosPHI*sinLAM*sinH)*
 	 (RADIANS(asib->head_change))
 	 -(sinP*(cosPHI*cosLAM*sinH +cosPHI*sinLAM*cosH)
 	   -sinPHI*cosP)*RADIANS(asib->pitch_change));
-	antenna_vr = 0;
+
 	double vr = aircraft_vr - antenna_vr;
 	return vr;
 	

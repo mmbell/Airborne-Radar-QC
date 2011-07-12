@@ -77,6 +77,17 @@ c Variable for reading text files
         REAL rotation_correction
         REAL tilt_correction
 
+! Variable for cfac files
+        REAL tilt_corr_aft
+        REAL tilt_corr_fore
+        REAL rot_angle_corr_aft
+        REAL rot_angle_corr_fore
+        REAL pitch_corr_cfac
+        REAL drift_corr_cfac
+        REAL range_delay_corr_aft
+        REAL range_delay_corr_fore
+        REAL pressure_alt_corr
+        REAL ew_gndspd_corr
 
 ! Scaler variable for each ray
 
@@ -1685,6 +1696,8 @@ c******************************************************************
 c**** ASSIGNEMENT OF THE RESULTS
 c******************************************************************
 c
+
+c CAI START -- add the function to write out cfac files in SOLO format
             print *,' '
             print *,' '
             print *,' '
@@ -1712,8 +1725,11 @@ c
      &                   ,3f7.3,/)")
      &             dtiltaft_guess,dtiltaft_res
      &            ,dtiltaft_guess+dtiltaft_res
+c CAI
+              tilt_corr_aft = dtiltaft_guess+dtiltaft_res
             else
               dtiltaft_res=0.
+              tilt_corr_aft = 0.0
             endif
 c
             if(idtiltfore.eq.1)then
@@ -1725,8 +1741,11 @@ c
      &                   ,3f7.3,/)")
      &             dtiltfore_guess,dtiltfore_res
      &            ,dtiltfore_guess+dtiltfore_res
+c CAI
+              tilt_corr_fore = dtiltfore_guess+dtiltfore_res
             else
               dtiltfore_res=0.
+              tilt_corr_fore = 0.0
             endif
 c
             if(idrotaaft.eq.1)then
@@ -1738,8 +1757,11 @@ c
      &                   ,3f7.3,/)")
      &             drotaaft_guess,drotaaft_res
      &            ,drotaaft_guess+drotaaft_res
+c CAI
+              rot_angle_corr_aft = drotaaft_guess+drotaaft_res
             else
               drotaaft_res=0.
+              rot_angle_corr_aft = 0.0
             endif
 c
             if(idrotafore.eq.1)then
@@ -1751,8 +1773,11 @@ c
      &                   ,3f7.3,/)")
      &             drotafore_guess,drotafore_res
      &            ,drotafore_guess+drotafore_res
+c CAI
+              rot_angle_corr_fore = drotafore_guess+drotafore_res
             else
               drotafore_res=0.
+              rot_angle_corr_fore = 0.0
             endif
 c
             if(idpitch.eq.1)then
@@ -1762,8 +1787,11 @@ c
               write(10,"(' D_PITCH (deg) guess,residual,total : '
      &                   ,3f7.3,/)")
      &             dpitch_guess,dpitch_res,dpitch_guess+dpitch_res
+c CAI
+              pitch_corr_cfac = dpitch_guess+dpitch_res
             else
               dpitch_res=0.
+              pitch_corr_cfac = 0.0
             endif
 c
             if(idhdg.eq.1)then
@@ -1773,8 +1801,11 @@ c
               write(10,"(' D_HEADING (deg) guess,residual,total : '
      &                   ,3f7.3,/)")
      &             dhdg_guess,dhdg_res,dhdg_guess+dhdg_res
+c CAI
+              drift_corr_cfac = dhdg_guess+dhdg_res
             else
               dhdg_res=0.
+              drift_corr_cfac = 0.0
             endif
 c
             if(irdaft.eq.1)then
@@ -1786,8 +1817,11 @@ c
      &                   ,3f6.0,/)")
      &             1000.*rdaft_guess,rdaft_res
      &            ,1000.*rdaft_guess+rdaft_res
+c CAI
+              range_delay_corr_aft = 1000.*rdaft_guess+rdaft_res
             else
               rdaft_res=0.
+              range_delay_corr_aft = 0.0
             endif
 c
             if(irdfore.eq.1)then
@@ -1799,8 +1833,11 @@ c
      &                   ,3f6.0,/)")
      &             1000.*rdfore_guess,rdfore_res
      &            ,1000.*rdfore_guess+rdfore_res
+c CAI
+              range_delay_corr_fore = 1000.*rdfore_guess+rdfore_res
             else
               rdfore_res=0.
+              range_delay_corr_fore = 0.0
             endif
 c
             if(idxwe.eq.1)then
@@ -1838,8 +1875,11 @@ c
      &                   ,3f6.0,/)")
      &             1000.*dzacft_guess,dzacft_res
      &            ,1000.*dzacft_guess+dzacft_res
+c CAI
+              pressure_alt_corr = 1000.*dzacft_guess+dzacft_res
             else
               dzacft_res=0.
+              pressure_alt_corr = 0.0
             endif
 c
             if(idvh.eq.1)then
@@ -1849,8 +1889,11 @@ c
               write(10,"(' D_VHACFT (m/s) guess,residual,total : '
      &                   ,3f6.2,/)")
      &             dvh_guess,dvh_res,dvh_guess+dvh_res
+c CAI
+              ew_gndspd_corr = dvh_guess+dvh_res
             else
               dvh_res=0.
+              ew_gndspd_corr = 0.0
             endif
 c
             print *,' '
@@ -1889,6 +1932,104 @@ c
      &           ,directory(1:ndir)//'/'//fich_cornav
 	  close(10)
 c
+c CAI
+c******************************************************************
+c             Write the cfac files using SOLO format
+c******************************************************************
+
+c Write the aft cafc file
+
+c         open(11,file=directory(1:ndir)//'/'//'cfac.aft'
+c    &       ,form='formatted',status='unknown')
+ 
+              write(11,"('azimuth_corr           ='
+     &                   ,f8.3)")0.0
+ 
+              write(11,"('elevation_corr         ='
+     &                   ,f8.3)")0.0
+ 
+              write(11,"('range_delay_corr       ='
+     &                   ,f8.3)")range_delay_corr_aft
+ 
+              write(11,"('longitude_corr         ='
+     &                   ,f8.3)")0.0
+              write(11,"('latitude_corr          ='
+     &                   ,f8.3)")0.0
+              write(11,"('pressure_alt_corr      ='
+     &                   ,f8.3)")pressure_alt_corr
+              write(11,"('radar_alt_corr         ='
+     &                   ,f8.3)")0.0
+              write(11,"('ew_gndspd_corr         ='
+     &                   ,f8.3)")ew_gndspd_corr
+ 
+              write(11,"('ns_gndspd_corr         ='
+     &                   ,f8.3)")0.0
+              write(11,"('vert_vel_corr          ='
+     &                   ,f8.3)")0.0
+              write(11,"('heading_corr           ='
+     &                   ,f8.3)")0.0
+              write(11,"('roll_corr              ='
+     &                   ,f8.3)")0.0
+              write(11,"('pitch_corr             ='
+     &                   ,f8.3)")pitch_corr_cfac
+              write(11,"('drift_corr             ='
+     &                   ,f8.3)")drift_corr_cfac
+              write(11,"('rot_angle_corr         ='
+     &                   ,f8.3)")rot_angle_corr_aft
+              write(11,"('tilt_corr              ='
+     &                   ,f8.3)")tilt_corr_aft
+ 
+c             close(11)
+
+c Write the fore cafc file
+
+c         open(12,file=directory(1:ndir)//'/'//'cfac.fore'
+c    &       ,form='formatted',status='unknown')
+
+              write(12,"('azimuth_corr           ='
+     &                   ,f8.3)")0.0
+
+              write(12,"('elevation_corr         ='
+     &                   ,f8.3)")0.0
+
+              write(12,"('range_delay_corr       ='
+     &                   ,f8.3)")range_delay_corr_fore
+
+              write(12,"('longitude_corr         ='
+     &                   ,f8.3)")0.0
+              write(12,"('latitude_corr          ='
+     &                   ,f8.3)")0.0
+              write(12,"('pressure_alt_corr      ='
+     &                   ,f8.3)")pressure_alt_corr
+              write(12,"('radar_alt_corr         ='
+     &                   ,f8.3)")0.0
+              write(12,"('ew_gndspd_corr         ='
+     &                   ,f8.3)")ew_gndspd_corr
+
+              write(12,"('ns_gndspd_corr         ='
+     &                   ,f8.3)")0.0
+              write(12,"('vert_vel_corr          ='
+     &                   ,f8.3)")0.0
+              write(12,"('heading_corr           ='
+     &                   ,f8.3)")0.0
+              write(12,"('roll_corr              ='
+     &                   ,f8.3)")0.0
+              write(12,"('pitch_corr             ='
+     &                   ,f8.3)")pitch_corr_cfac
+              write(12,"('drift_corr             ='
+     &                   ,f8.3)")drift_corr_cfac
+              write(12,"('rot_angle_corr         ='
+     &                   ,f8.3)")rot_angle_corr_fore
+              write(12,"('tilt_corr              ='
+     &                   ,f8.3)")tilt_corr_fore
+
+c             close(12)
+
+
+c CAI ******  End of writing the cfac files  ******************
+
+
+
 c******************************************************************
 c**** WRITES THE "SURF_EL*" FILE #30 (if IWRISURFILE=1)
 c******************************************************************
