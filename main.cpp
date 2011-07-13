@@ -24,7 +24,7 @@ int main (int argc, char *argv[]) {
 	QString outpath = argv[2];	
 	QString suffix = "QC";
 	AirborneRadarQC QC(inpath, outpath, suffix);
-
+	
 	// Process the data
 	QC.processSweeps();
 	
