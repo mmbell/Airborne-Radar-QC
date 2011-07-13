@@ -11,7 +11,7 @@
 
 #include "AirborneRadarQC.h"
 
-class QCscript //: public AirborneRadarQC
+class QCscript : public AirborneRadarQC
 {
 
 public:

@@ -20,21 +20,20 @@ void Init_QCscript(void)
   RUBY_TRY
   {
 
-//    define_class<AirborneRadarQC>("AirborneRadarQC");
+    define_class<AirborneRadarQC>("AirborneRadarQC");
 //      .define_constructor(Constructor<AirborneRadarQC>());
 
-    define_class<QCscript>("QCscript")
-      .define_constructor(Constructor<QCscript>());
-
-//      .define_method("processSweeps", &QCscript::processSweeps)
-//      .define_method("setInputPath", &QCscript::rb_setInputPath)
-//      .define_method("setOutputPath", &QCscript::rb_setOutputPath);
+    define_class<QCscript, AirborneRadarQC>("QCscript")
+      .define_constructor(Constructor<QCscript>())
+      .define_method("processSweeps", &QCscript::processSweeps)
+      .define_method("setInputPath", &QCscript::rb_setInputPath)
+      .define_method("setOutputPath", &QCscript::rb_setOutputPath);
   }
   RUBY_CATCH
 } 
 
 QCscript::QCscript()
-//   : AirborneRadarQC()
+   : AirborneRadarQC()
 {
 
 }
@@ -47,12 +46,12 @@ QCscript::~QCscript()
 bool QCscript::rb_setInputPath(const std::string& in)
 {
 	QString path = QString::fromStdString(in);
-//	return setInputPath(path);
+	return setInputPath(path);
 }
 
 bool QCscript::rb_setOutputPath(const std::string& out)
 {
         QString path = QString::fromStdString(out);
-//        return setOutputPath(path);
+        return setOutputPath(path);
 }
 

@@ -6,3 +6,5 @@ Info.plist
 .svn
 .DS_Store
 profile
+*.o
+*.bundle
