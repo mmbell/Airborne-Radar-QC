@@ -45,7 +45,10 @@ QString AirborneRadarQC::getInputPath()
 bool AirborneRadarQC::setInputPath(const QString& in)
 {
 	dataPath = QDir(in);
-	if (dataPath.isReadable()) return true;
+	if (dataPath.isReadable()) {
+		readSwpDir();
+		return true;
+	}
 	return false;
 }
 
