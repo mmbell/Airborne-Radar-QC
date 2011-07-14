@@ -830,7 +830,7 @@ c******************************************************************
       read(55,102,END=5)counter,(VR(J),J=1,nranges)
       read(55,102,END=5)counter,(SW(J),J=1,nranges)
  101  format(I10,2x,50x,3I10,I5,5I3,d20.8,2f10.4,3d20.8,29f10.4)
- 102  format(I10,400f10.4)
+ 102  format(I10,2000f10.4)
 c after successful read
         goto 6
 c When end of file reached
@@ -1317,12 +1317,12 @@ c******************************************************************
 c
         if(iend.eq.2)then
 	  print *,' '
-	  print *,' *****************************************************'
+	  print *,' ****************************************************'
 	  print *,'   HHMMSS :',ih_ray,im_ray,is_ray
      &           ,'   -> END OF CONSIDERED PERIOD'
 	  print *,'   NB_SWEEPS_READ FOR AFT AND FORE RADARS :'
      &           ,nb_sweep
-	  print *,' *****************************************************'
+	  print *,' ****************************************************'
 	  print *,' '
 	  print *,' '
           write(10,"(' NB_SWEEPS FOR THE AFT AND FORE RADARS: '
@@ -1939,8 +1939,8 @@ c******************************************************************
 
 c Write the aft cafc file
 
-c         open(11,file=directory(1:ndir)//'/'//'cfac.aft'
-c    &       ,form='formatted',status='unknown')
+         open(11,file=directory(1:ndir)//'/'//'cfac.aft'
+     &       ,form='formatted',status='unknown')
  
               write(11,"('azimuth_corr           ='
      &                   ,f8.3)")0.0
@@ -1979,12 +1979,12 @@ c    &       ,form='formatted',status='unknown')
               write(11,"('tilt_corr              ='
      &                   ,f8.3)")tilt_corr_aft
  
-c             close(11)
+              close(11)
 
 c Write the fore cafc file
 
-c         open(12,file=directory(1:ndir)//'/'//'cfac.fore'
-c    &       ,form='formatted',status='unknown')
+          open(12,file=directory(1:ndir)//'/'//'cfac.fore'
+     &       ,form='formatted',status='unknown')
 
               write(12,"('azimuth_corr           ='
      &                   ,f8.3)")0.0
@@ -2023,7 +2023,7 @@ c    &       ,form='formatted',status='unknown')
               write(12,"('tilt_corr              ='
      &                   ,f8.3)")tilt_corr_fore
 
-c             close(12)
+              close(12)
 
 
 c CAI ******  End of writing the cfac files  ******************

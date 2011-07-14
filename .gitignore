@@ -8,3 +8,4 @@ Info.plist
 profile
 *.o
 *.bundle
+*.log
