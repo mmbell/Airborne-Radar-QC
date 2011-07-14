@@ -6,11 +6,16 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
+SOURCEPATH = ./radarqc/ext
 
 # Input
-HEADERS += AirborneRadarQC.h \
-           Dorade.h \
-           precision.h \
-           read_dorade.h \
-           RecursiveFilter.h
-SOURCES += AirborneRadarQC.cpp Dorade.cpp main.cpp RecursiveFilter.cpp
+HEADERS += $$SOURCEPATH/AirborneRadarQC.h \
+           $$SOURCEPATH/Dorade.h \
+           $$SOURCEPATH/precision.h \
+           $$SOURCEPATH/read_dorade.h \
+           $$SOURCEPATH/RecursiveFilter.h
+SOURCES += $$SOURCEPATH/AirborneRadarQC.cpp \
+	   $$SOURCEPATH/Dorade.cpp \
+	   $$SOURCEPATH/RecursiveFilter.cpp \
+	   main.cpp
+
