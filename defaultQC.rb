@@ -8,32 +8,34 @@ tf_cfac = "/Users/mbell/Science/current/eldora/autoqc/test/rf12.cfac.fore"
 qc = QCscript.new
 qc.setInputPath(input)
 qc.setOutputPath(output)
-puts 'Processing data from ' + qc.getInputPath + ' to ' + qc.getOutputPath
-0.upto(qc.getFileListSize - 1) { |file|
-	puts "Processing #{file}"
-	qc.load(file)
+puts "Processing data from #{qc.getInputPath} to #{qc.getOutputPath}"
+qc.getFileListSize.times { |file|
+	puts "Processing file #{file}"
+	qc.instance_eval do
+	   load file
 
-	qc.setNavigationCorrections(ta_cfac, "TA-ELDR")
-        qc.setNavigationCorrections(tf_cfac, "TF-ELDR")
-	qc.removeAircraftMotion("VR", "VQC");
+	   setNavigationCorrections(ta_cfac, "TA-ELDR")
+           setNavigationCorrections(tf_cfac, "TF-ELDR")
+	   removeAircraftMotion("VR", "VQC");
 
-	qc.thresholdData("NCP", "ZZ", 0.2, "below")
-	qc.thresholdData("NCP","VQC", 0.2, "below")
+	   thresholdData("NCP", "ZZ", 0.2, "below")
+	   thresholdData("NCP","VQC", 0.2, "below")
 
-	qc.probGroundGates("ZZ", "GG", 2.0);
-	qc.thresholdData("GG","ZZ", 0.7, "above");
-	qc.thresholdData("GG","VQC", 0.7, "above");
+	   probGroundGates("ZZ", "GG", 2.0);
+	   thresholdData("GG","ZZ", 0.7, "above");
+	   thresholdData("GG","VQC", 0.7, "above");
 		
-	qc.calcRatio("SW", "ZZ", "SWZ", true);
-	qc.thresholdData("SWZ","ZZ", 0.6, "above");
-	qc.thresholdData("SWZ","VQC", 0.6, "above");
+	   calcRatio("SW", "ZZ", "SWZ", true);
+	   thresholdData("SWZ","ZZ", 0.6, "above");
+	   thresholdData("SWZ","VQC", 0.6, "above");
 
-	qc.despeckleRadial("ZZ", 2);
-	qc.despeckleRadial("VQC", 2);
-	qc.despeckleAzimuthal("ZZ", 2);
-	qc.despeckleAzimuthal("VQC", 2);
+	   despeckleRadial("ZZ", 2);
+	   despeckleRadial("VQC", 2);
+	   despeckleAzimuthal("ZZ", 2);
+	   despeckleAzimuthal("VQC", 2);
 
-	qc.save(file)
+	   save file
+	end
 }
 puts 'QC complete'
 
