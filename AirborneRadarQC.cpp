@@ -25,8 +25,43 @@ AirborneRadarQC::AirborneRadarQC(const QString& in, const QString& out, const QS
 
 }
 
+AirborneRadarQC::AirborneRadarQC()
+{
+	// Setup the data path
+	dataPath = QDir(".");
+	outPath = QDir(".");
+	swpSuffix = "QC";	
+}
+
 AirborneRadarQC::~AirborneRadarQC()
 {
+}
+
+QString AirborneRadarQC::getInputPath()
+{
+	return dataPath.absolutePath();
+}
+
+bool AirborneRadarQC::setInputPath(const QString& in)
+{
+	dataPath = QDir(in);
+	if (dataPath.isReadable()) {
+		readSwpDir();
+		return true;
+	}
+	return false;
+}
+
+QString AirborneRadarQC::getOutputPath()
+{
+	return outPath.absolutePath();
+}
+
+bool AirborneRadarQC::setOutputPath(const QString& out)
+{
+	outPath = QDir(out);
+	if (outPath.exists()) return true;
+	return false;
 }
 
 // This is the main driver for the data processing

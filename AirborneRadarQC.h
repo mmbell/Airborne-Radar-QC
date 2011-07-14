@@ -19,7 +19,8 @@ class AirborneRadarQC
 public:
 	// Conor / Deor
 	AirborneRadarQC(const QString& in, const QString& out, const QString& suffix);
-	~AirborneRadarQC();
+        AirborneRadarQC();
+	virtual ~AirborneRadarQC();
 
 	// I/O
 	bool readSwpDir();
@@ -29,6 +30,10 @@ public:
 	bool saveDorade(const QString& doradeFilename);
 	int getfileListsize() { return swpfileList.size(); }
 	QString getswpfileName(int n) { return swpfileList[n]; }
+	QString getInputPath();
+	bool setInputPath(const QString& in);
+	QString getOutputPath();
+	bool setOutputPath(const QString& out);
 	
 	// QC
 	bool processSweeps();
