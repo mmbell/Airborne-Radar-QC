@@ -20,8 +20,9 @@ indir = ARGV[0]
 #------------------------------------------------------------------------
 # 1. Run RadxConvert to generate cfRadial files for navigation correction
 #------------------------------------------------------------------------
+puts 'Pre-processing for navigation corrections...'
 `rm ./cfradial/*`
-command = `./bin/RadxConvert -d -params RadxConvert.params -f #{indir}/*`
+command = `./bin/RadxConvert -params RadxConvert.params -f #{indir}/* 2>&1`
 puts command
 
 #-------------------------------------
@@ -38,10 +39,8 @@ filelist.close
 #--------------------------------------------
 # 3. Run the preprocessor on the netcdf files
 #--------------------------------------------
-command = `cd ./cfradial; ../bin/readnetcdf_DBZ_VR filelist; cd ../`
+command = `cd ./cfradial; ../bin/readnetcdf_DBZ_VR filelist 2>&1; cd ../`
 puts command
-`rm ./cfradial/*.txt`
-`rm ./cfradial/filelist`
 
 #--------------------------------------------
 # 4. Modify the navigation input file
@@ -61,24 +60,27 @@ template.close
 #---------------------------------
 # 5. Run the Navigation Correction
 #---------------------------------
-command = `./bin/cns_eldo_cai DATA_cns_run`
-puts command
+puts 'Running navigation corrections...'
+command = `./bin/cns_eldo_cai DATA_cns_run 2>&1`
+#puts command
 
 #-------------------
 # 5. Run the QC code
-# (must 1st apply navigation corrections to the files before running; should this be done as
-#  a separate program or in the QC code?)
 #-------------------
+puts 'Performing data quality control...'
 `rm ./qced/*`
 load 'defaultQC.rb'
 
 #-------------------
 # 6. Run RadxConvert
 #-------------------
-command = `./bin/RadxConvert -d -params RadxConvert.params -f ./qced/*`
+command = `./bin/RadxConvert -params RadxConvert.params -f ./qced/* 2>&1`
 puts command
 
 #--------------------------------------
 # Output is cfRadial files that are
 # ready for Dual Doppler analysis.
 #--------------------------------------
+`rm ./cfradial/*.txt`
+`rm ./cfradial/filelist`
+
