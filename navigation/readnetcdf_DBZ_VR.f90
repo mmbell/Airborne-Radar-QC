@@ -111,7 +111,7 @@
     CHARACTER(len=64) time_coverage_start,time_coverage_end 
 
 ! Variables for input file list
-    CHARACTER(len=50) filename,outfilename , argu
+    CHARACTER(len=80) filename,outfilename , argu
     INTEGER  nfile     ! number of netcdf files
 
 !   Initialization

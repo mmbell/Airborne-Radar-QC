@@ -463,7 +463,20 @@ void AirborneRadarQC::swpField2array(const QString& oriFieldName, float** field)
 	
 }
 
+void AirborneRadarQC::copyEdits(const QString& oriFieldName,const QString& newFieldName)
+{
 
+	for (int i=0; i < swpfile.getNumRays(); i++) {
+		// Get the data
+		float* threshdata = swpfile.getRayData(i, oriFieldName);
+		float* data = swpfile.getRayData(i, newFieldName);
+		
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+			if (threshdata[n] == -32768.0) data[n] = -32768.0;
+		}
+	}
+	
+}
 void AirborneRadarQC::calcRatio(const QString& topFieldName, const QString& bottomFieldName,
 							const QString& newFieldName, const bool& zflag)
 {
@@ -2262,12 +2275,12 @@ void AirborneRadarQC::setNavigationCorrections(const QString& cfacFileName, cons
 	cfacFile.open(QIODevice::ReadOnly);
 	while (!cfac.atEnd()) {
 		QString line = cfac.readLine();
-		QStringList lineparts = line.split(QRegExp("\\s+"));
-		if (lineparts.size() < 3) {
-			printf("Error reading cfac file");
+		QStringList lineparts = line.split("=");
+		if (lineparts.size() < 2) {
+			printf("Error reading cfac file\n");
 			return;
 		}
-		cfacData[count] = lineparts[2].toFloat();
+		cfacData[count] = lineparts[1].toFloat();
 		count++;
 	}	
 	cfacFile.close();

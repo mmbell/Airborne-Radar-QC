@@ -31,6 +31,7 @@ public:
 			     float eff_beamwidth);
      void rb_despeckleRadial(const std::string& fieldName, int speckle);
      void rb_despeckleAzimuthal(const std::string& fieldName, int speckle);
+     void rb_copyEdits(const std::string& oriFieldName, const std::string& newFieldName);
      void rb_calcRatio(const std::string& topFieldName, const std::string& bottomFieldName,
                        const std::string& newFieldName, bool zflag);
      void rb_setNavigationCorrections(const std::string& cfacFileName, const std::string& radarName);

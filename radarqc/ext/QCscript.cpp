@@ -38,7 +38,8 @@ void Init_QCscript(void)
       .define_method("probGroundGates", &QCscript::rb_probGroundGates)
       .define_method("calcRatio", &QCscript::rb_calcRatio)
       .define_method("despeckleRadial", &QCscript::rb_despeckleRadial)
-      .define_method("despeckleAzimuthal", &QCscript::rb_despeckleAzimuthal);
+      .define_method("despeckleAzimuthal", &QCscript::rb_despeckleAzimuthal)
+      .define_method("copyEdits", &QCscript::rb_copyEdits);
   }
   RUBY_CATCH
 } 
@@ -115,6 +116,13 @@ void QCscript::rb_despeckleAzimuthal(const std::string& fieldName, int speckle)
 {
         QString fld = QString::fromStdString(fieldName);
         despeckleAzimuthal(fld,speckle);
+}
+
+void QCscript::rb_copyEdits(const std::string& oriFieldName, const std::string& newFieldName)
+{
+        QString ori = QString::fromStdString(oriFieldName);
+        QString fld = QString::fromStdString(newFieldName);
+        copyEdits(ori,fld);
 }
 
 void QCscript::rb_calcRatio(const std::string& topFieldName, const std::string& bottomFieldName,

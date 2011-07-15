@@ -1,0 +1,33 @@
+'./corrections'        ! 'DIRECTORY FOR WRITING'
+'./cfradial'     ! 'DIRECTORY FOR READING TEXT FILE
+NUMFILES                        ! Number of text files
+09 14 2008                 ! DD MM YYYY
+234700 235500              ! HHMMSS_start HHMMSS_stop
+16.64  148.00                 ! LAT LON ORIGIN (degrees)
+1 2 3 4 5 0 0 0 0 0 0 0 0 0 0         ! 15 GATES TO DISMISS (0 if not)
+0. 40.                     ! Dmin, Dmax (km) FOR RADAR_DATA
+1                          ! ALTITUDE (pressure=1,radar=2) ( orography -> 1)
++5. 60.                    ! REF_min (at 10km), REF_max (dBZ)
+1                          ! VDOP(1:VR,2:VG,3:VU)
+---------------------------------------------------------------------------
+1.000 1.000 0.000          ! REL_WGHTS (0->1) FOR dZsurf, Vsurf, dVinsitu
+---------------------------------------------------------------------------
+0 0                        ! RETRIEVAL OF dTILT_aft, dTILT_fore (1/0)
+1 1                        ! RETRIEVAL OF dROTA_aft, dROTA_fore (1/0)
+1 1                        ! RETRIEVAL OF dPITCH,dHEADING (1/0)
+1 1                        ! RETRIEVAL OF RGE_DLY_aft, RGE_DLY_fore (1/0)
+0 0 0                      ! RETRIEVAL OF dX_acft, dY_acft, dZ_acft (1/0)
+1                          ! RETRIEVAL OF dVH_acft (1/0)
+---------------------------------------------------------------------------
+0         ! SIMULATION WITH -dXXX_GUESS (1/0)
+---------------------------------------------------------------------------
+ 0.000   0.000          ! dTILT_aft, dTILT_fore (deg) GUESS
+-1.200  -1.200          ! dROTA_aft, dROTA_fore (deg) GUESS
+-1.000  -0.100          ! dPITCH, dHEADING (deg) GUESS
+ 0.000   0.000         ! RGE_DLY_aft, RGE_DLY_fore (!! km !!) GUESS
+-0.000  -0.000  0.000   ! dX_we, dY_sn, dZ_acft (!! km !!) GUESS
+-0.500                    ! dVH_acft (m/s) GUESS
+---------------------------------------------------------------------------
+0 'IHOP_DTM_1km' 0.000  ! READ (1/0) DTM, 'SURF_DTM_*'(if 1), H_cst(if 0 in km)
+1 'SURF_E_1720-1725_C1'    ! WRITE (1/0) SURF_EL_* , 'SURF_EL_*'
+100. 1.                    ! XY_width, Hxy of 'SURF_wr**'

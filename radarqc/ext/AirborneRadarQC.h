@@ -48,6 +48,7 @@ public:
 	void GaussianSmooth(const QString& oriFieldName, const QString& newFieldName, const int& scale);
 	void GaussianSmooth(const QString& oriFieldName, float** field, const int& scale);
 	void swpField2array(const QString& oriFieldName, float** field);
+	void copyEdits(const QString& oriFieldName,const QString& newFieldName);
 	
 	// REC Fields
 	void calcTexture(const QString& oriFieldName, const QString& fldname);
