@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'mkmf-rice'
 $DEFINES  = " -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED"
 $CFLAGS   += " -pipe -g -gdwarf-2 -Wall -W #$DEFINES"

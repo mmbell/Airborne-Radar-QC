@@ -10,7 +10,7 @@
 #include "rice/Constructor.hpp"
 #include "QCscript.h"
 #include "AirborneRadarQC.h"
-#include "QString.h"
+#include <QString>
 
 using namespace Rice;
 
