@@ -1,4 +1,4 @@
-require './lib/radarqc.rb'
+require 'radarqc'
 
 input = "./raw"
 output = "./qced"
