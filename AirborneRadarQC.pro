@@ -6,7 +6,7 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
-SOURCEPATH = ./radarqc/ext
+SOURCEPATH = ./radarqc/ext/QCscript
 
 # Input
 HEADERS += $$SOURCEPATH/AirborneRadarQC.h \

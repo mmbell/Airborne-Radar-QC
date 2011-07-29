@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <QApplication>
-#include "radarqc/ext/Dorade.h"
-#include "radarqc/ext/AirborneRadarQC.h"
+#include "radarqc/ext/QCscript/Dorade.h"
+#include "radarqc/ext/QCscript/AirborneRadarQC.h"
 
 using namespace std;
 

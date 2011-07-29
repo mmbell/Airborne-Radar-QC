@@ -23,10 +23,16 @@ Once the `radarqc` gem is installed, you can include it in an editing script. A 
 
 Bell, M. M., W.-C. Lee, C. Wolff, and H. Cai, 2011: An automated procedure for quality control of airborne tail Doppler radar data. *In preparation*
 
-### QT Dependency
+### Qt
 
-The Ruby gem requires the [QT] (http://http://qt.nokia.com/) library to build the native extension. The include and library paths are currently hard-coded in `ext/QCscript/extconf.rb`, but this will be configurable in a future release
- 
+The Ruby gem requires the [Qt] (http://http://qt.nokia.com/) library to build the native extension. The include and library paths are currently hard-coded in `ext/QCscript/extconf.rb`, but this will be configurable in a future release.
+
+A command line C++ application can also be built that does not require the Ruby interface. From the top-level directory run
+
+     $ qmake
+
+to create a Makefile or Xcode project for your machine.
+
 ## Navigation
  
 The navigation correction code is based on the algorithm described in:
