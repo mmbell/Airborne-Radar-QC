@@ -18,8 +18,8 @@ AirborneRadarQC::AirborneRadarQC(const QString& in, const QString& out, const QS
 {
 	
 	// Setup the data path
-	dataPath = QDir(in);
-	outPath = QDir(out);
+	dataPath.setPath(in);
+	outPath.setPath(out);
 	swpSuffix = suffix;
 	readSwpDir();
 
@@ -28,8 +28,8 @@ AirborneRadarQC::AirborneRadarQC(const QString& in, const QString& out, const QS
 AirborneRadarQC::AirborneRadarQC()
 {
 	// Setup the data path
-	dataPath = QDir(".");
-	outPath = QDir(".");
+	dataPath.setPath(".");
+	outPath.setPath(".");
 	swpSuffix = "QC";	
 }
 
@@ -44,7 +44,7 @@ QString AirborneRadarQC::getInputPath()
 
 bool AirborneRadarQC::setInputPath(const QString& in)
 {
-	dataPath = QDir(in);
+	dataPath.setPath(in);
 	if (dataPath.isReadable()) {
 		readSwpDir();
 		return true;
@@ -59,7 +59,7 @@ QString AirborneRadarQC::getOutputPath()
 
 bool AirborneRadarQC::setOutputPath(const QString& out)
 {
-	outPath = QDir(out);
+	outPath.setPath(out);
 	if (outPath.exists()) return true;
 	return false;
 }
@@ -2034,8 +2034,6 @@ void AirborneRadarQC::compareForeAftRef()
 	refoutFile.setFileName(refoutName);
 	refoutFile.open(QIODevice::Append | QIODevice::WriteOnly);
 	
-	//std::ofstream refout(refoutName.toAscii().data(), std::ios_base::openmode mode = std::ios_base::app);
-	//std::ostream_iterator<float> os(refout, "\t ");
 	for (int i=0; i < 1; i++) {
 		//for (int i=0; i < swpfile.getNumRays(); i++) {
 		float az = swpfile.getAzimuth(i);
@@ -2166,8 +2164,6 @@ void AirborneRadarQC::dumpFLwind()
 	veloutFile.setFileName(veloutName);
 	veloutFile.open(QIODevice::Append | QIODevice::WriteOnly);
 	QString velFieldName = "VG";
-	//std::ofstream refout(refoutName.toAscii().data(), std::ios_base::openmode mode = std::ios_base::app);
-	//std::ostream_iterator<float> os(refout, "\t ");
 	for (int i=0; i < swpfile.getNumRays(); i++) {
 		float az = swpfile.getAzimuth(i);
 		float el = swpfile.getElevation(i);

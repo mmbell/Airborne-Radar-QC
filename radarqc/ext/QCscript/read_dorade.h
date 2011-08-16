@@ -262,5 +262,5 @@ struct rktb_info {
     int num_rays;
 };
 
-#pragma options align=reset
+#pragma pack()
 #endif
