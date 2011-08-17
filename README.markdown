@@ -19,14 +19,13 @@ Use rake to build and install the `radarqc` Ruby gem onto your local machine.
 
      $ rake install
 
-Once the `radarqc` gem is installed, you can include it in an editing script. A sample `defaultQC.rb` script is included in the top level directory. The script is based on the procedure described in:
+You will also need the `bundler` gem to install the required dependencies. Once the `radarqc` gem is installed, you can include it in an editing script. A sample `defaultQC.rb` script is included in the top level directory. The script is based on the procedure described in:
 
 Bell, M. M., W.-C. Lee, C. Wolff, and H. Cai, 2011: An automated procedure for quality control of airborne tail Doppler radar data. *In preparation*
 
 ### Qt
 
-The Ruby gem requires the [Qt] (http://http://qt.nokia.com/) library to build the native extension. The include and library paths are currently hard-coded in `ext/QCscript/extconf.rb`, but this will be configurable in a future release.
-
+The Ruby gem requires the [Qt] (http://http://qt.nokia.com/) library to build the native extension.
 A command line C++ application can also be built that does not require the Ruby interface. From the top-level directory run
 
      $ qmake
