@@ -61,9 +61,10 @@ module Qt
           flags.each { |flag, envvar|
             if line =~ /^#{flag}/
               var = line.split('=')
+	      var.shift
 	      front = Regexp.escape('$(')
 	      back = Regexp.escape(')')
-              newvar = var[1].sub(/#{front}\w+#{back}/, '')
+              newvar = var.join('=').sub(/#{front}\w+#{back}/, '')
               (envvar ||= "") << newvar.chomp
             end
           }
