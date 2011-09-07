@@ -57,6 +57,8 @@ More complete documentation on how to run the software will be described here sh
 ## Copyright
 
 Radarqc Copyright (c) 2011 Michael Bell, Cory Wolff
+
 Navigation Copyright (c) 2011 Michael Bell, Huaqing Cai, and Frank Roux.
+
 See LICENSE for details.
 
