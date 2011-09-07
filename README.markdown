@@ -56,5 +56,7 @@ More complete documentation on how to run the software will be described here sh
 
 ## Copyright
 
-Copyright (c) 2011 Michael Bell, Cory Wolff, and Huaqing Cai. See LICENSE for details.
+Radarqc Copyright (c) 2011 Michael Bell, Cory Wolff
+Navigation Copyright (c) 2011 Michael Bell, Huaqing Cai, and Frank Roux.
+See LICENSE for details.
 
