@@ -6,7 +6,7 @@ LDFLAGS =
 
 # Libraries
 NETCDF = /usr/local
-LIBS = -L${NETCDF}/lib -lnetcdf -lnetcdff -lcurl -hdf5 -lhdf5_hl
+LIBS = -L${NETCDF}/lib -lnetcdf -lnetcdff -lcurl -lhdf5 -lhdf5_hl
 INCLUDES = -I${NETCDF}/include
 
 all: readnetcdf_DBZ_VR cns_eldo_cai
