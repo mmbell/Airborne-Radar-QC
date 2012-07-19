@@ -68,7 +68,7 @@ void RecursiveFilter::getFilterCoefficients()
 	
 	for (int i=0;i<=200;i++) {
 		for (int j=0;j<=200;j++) {
-			if (abs(j-i) <= order) {
+			if (std::abs((double)(j-i)) <= order) {
 				a[i][j] = D[j-i+order];
 			} else {
 				a[i][j] = 0;
