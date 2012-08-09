@@ -8,6 +8,8 @@
 
 #include "AirborneRadarQC.h"
 #include "RecursiveFilter.h"
+#include "DEM.h"
+#include <GeographicLib/TransverseMercatorExact.hpp>
 #include <iterator>
 #include <fstream>
 #include <iostream>
@@ -2932,9 +2934,19 @@ void AirborneRadarQC::soloiiScriptVerification()
  ** groundProbability : This subroutine calculates the probability that a given gate is ground
  using just the beamwidth
  ****************************************************************************************/
-void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth) 
+void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth,
+                                      const QString& demFileName)
 {
-	
+    bool demFlag = false;
+    DEM asterDEM;
+    GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
+	if (!demFileName.isEmpty()) {
+        if(!asterDEM.readDem(demFileName.toAscii().data())) {
+            printf("Error reading DEM file! Using flat ground instead\n");
+        } else {
+            demFlag = true;
+        }
+    }
 	float earth_radius=6366805.6;
 	QString newFieldDesc = "Ground Gates";
 	QString newFieldUnits = "binary";
@@ -2951,14 +2963,20 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 		// Clear the ray
 		for (int n=0; n < numgates; n++) {
 			if (data[n] != -32768.) data[n] = 0;
+            
 		}
 		
 		// Find the intersection with the main beam
+        float az = swpfile.getAzimuth(i)*0.017453292;
 		float elev = (swpfile.getElevation(i)-(eff_beamwidth*0.5))*0.017453292;
 		float tan_elev = tan(elev);
-		float alt = swpfile.getRadarAlt(i)*1000;
+        float radarLat = swpfile.getRadarLat(i);
+		float radarLon = swpfile.getRadarLon(i);
+        double radarX, radarY;
+		tm.Forward(radarLon, radarLat, radarLon, radarX, radarY);
+		float radarAlt = swpfile.getRadarAlt(i)*1000;
 		float ground_intersect = 0;
-		ground_intersect = (-(alt)/sin(elev))*(1.+alt/(2.*earth_radius*tan_elev*tan_elev));		
+		ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
 		if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
 			continue;
 		}
@@ -2967,8 +2985,18 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 		ground_intersect -= 3*(gates[2]-gates[1]);
 		
 		// Calculate prob based on Gaussian beam shape
+        double absLat, absLon, h;
 		for (int g=0; g< numgates; g++) {
-			float grange = ground_intersect-gates[g];
+            if (demFlag) {
+                double range = gates[g];
+                double relX = range*sin(az)*cos(elev);
+                double relY = range*cos(az)*cos(elev);
+                tm.Reverse(radarLon, radarX + relX, radarY + relY, absLat, absLon);
+                h = asterDEM.getElevation(absLat, absLon);
+                double agl = radarAlt - h;
+                ground_intersect = (-(agl)/sin(elev))*(1.+agl/(2.*earth_radius*tan_elev*tan_elev));
+            }
+            float grange = ground_intersect-gates[g];
 			if (grange <= 0) {
 				if (data[g] != -32768.) data[g]	= 1.;
 			} else {

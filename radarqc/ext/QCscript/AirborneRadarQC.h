@@ -96,7 +96,8 @@ public:
 	void flagGroundGates(const QString& fldname, const float& eff_beamwidth);
 	
 	// Probabilities
-	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth);
+	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth,
+                         const QString& demFileName = 0);
 	void calcWeatherProb(const QString& mdbzt_name, const QString& mdbzs_name, const QString& mdbzl_name, const QString& mvgs_name, const QString& mncp_name);
 	void wxProbability2();
 	void mapRefTexture(const QString& fldname);
