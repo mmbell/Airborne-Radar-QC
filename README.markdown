@@ -24,8 +24,9 @@ You will need the `bundler` gem to install the required Ruby dependencies, which
 
 The Ruby gem also requires the [Qt] (http://http://qt.nokia.com/) library to build the native extension. See the instructions below on how to build a native C++ application without the Ruby interface.
 
-Use rake to build and install the `radarqc` gem onto your local machine. 
+Use bundler and rake to build and install the `radarqc` gem onto your local machine. 
 
+     $ bundle install
      $ rake install
 
 Once the `radarqc` gem is installed, you can include it in an editing script. A sample `defaultQC.rb` script is included in the top level directory. The script is based on the procedure described in:
