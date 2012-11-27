@@ -23,6 +23,9 @@ jeweler_tasks = Jeweler::Tasks.new do |gem|
   gem.authors = ["Michael Bell", "Cory Wolff"]
   gem.extensions = FileList["ext/**/extconf.rb"]
   gem.files.include('lib/radarqc/QCscript.*')
+  gem.files.include('lib/**/*')
+  gem.files.include('lib/qt/qmake.rb')  
+  gem.files.include('ext/**/*')
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
