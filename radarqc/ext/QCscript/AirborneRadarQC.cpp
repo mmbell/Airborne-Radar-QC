@@ -85,22 +85,22 @@ bool AirborneRadarQC::processSweeps()
 			//setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
 			removeAircraftMotion("VR", "VQC");
 			
-			thresholdData("NCP", "ZZ", 0.2, "below");
-			thresholdData("NCP","VQC", 0.2, "below");
+			//thresholdData("NCP", "ZZ", 0.2, "below");
+			//thresholdData("NCP","VQC", 0.2, "below");
 			
-			probGroundGates("ZZ", "GG", 2.0);
-			thresholdData("GG","ZZ", 0.7, "above");
-			thresholdData("GG","VQC", 0.7, "above");
+			probGroundGates("ZZ", "GG", 2.0, "ASTGTM2_N46E008_dem.tif");
+			//thresholdData("GG","ZZ", 0.7, "above");
+			//thresholdData("GG","VQC", 0.7, "above");
 			
-			calcRatio("SW", "ZZ", "SWZ", true);
-			thresholdData("SWZ","ZZ", 0.6, "above");
-			thresholdData("SWZ","VQC", 0.6, "above");
+			//calcRatio("SW", "ZZ", "SWZ", true);
+			//thresholdData("SWZ","ZZ", 0.6, "above");
+			//thresholdData("SWZ","VQC", 0.6, "above");
 
-			despeckleRadial("ZZ", 2);
-			despeckleRadial("VQC", 2);
+			//despeckleRadial("ZZ", 2);
+			//despeckleRadial("VQC", 2);
 
-			despeckleAzimuthal("ZZ", 2);
-			despeckleAzimuthal("VQC", 2);
+			//despeckleAzimuthal("ZZ", 2);
+			//despeckleAzimuthal("VQC", 2);
 			
 			// Dump the data to compare the fore and aft radars to a text file
 			//QC.dumpFLwind();
@@ -2947,6 +2947,7 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
             demFlag = true;
         }
     }
+    //asterDEM.dumpAscii(1);
 	float earth_radius=6366805.6;
 	QString newFieldDesc = "Ground Gates";
 	QString newFieldUnits = "binary";
@@ -2974,7 +2975,7 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 		float radarLon = swpfile.getRadarLon(i);
         double radarX, radarY;
 		tm.Forward(radarLon, radarLat, radarLon, radarX, radarY);
-		float radarAlt = swpfile.getRadarAlt(i)*1000;
+		float radarAlt = swpfile.getRadarAltMSL(i)*1000;
 		float ground_intersect = 0;
 		ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
 		if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
@@ -2993,6 +2994,7 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
                 double relY = range*cos(az)*cos(elev);
                 tm.Reverse(radarLon, radarX + relX, radarY + relY, absLat, absLon);
                 h = asterDEM.getElevation(absLat, absLon);
+                //if (g == 0) { std::cout << absLat << "\t" << absLon << "\t" << h << "\n"; }
                 double agl = radarAlt - h;
                 ground_intersect = (-(agl)/sin(elev))*(1.+agl/(2.*earth_radius*tan_elev*tan_elev));
             }

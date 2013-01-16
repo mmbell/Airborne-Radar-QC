@@ -27,12 +27,19 @@ DEM::~DEM()
 
 int DEM::getElevation(const double& lat, const double& lon)
 {
-	GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
+	/* GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
 	double refX, refY, pointX, pointY;
-	tm.Forward(refLon, refLat, refLon, refX, refY);	
-	tm.Forward(refLon, lat, lon, pointX, pointY);
-	int xIndex = (int)(pointX - refX)/dx;
-	int yIndex = (int)(pointY - refY)/dy;
+	tm.Forward(refLon, refLat, refLon, refX, refY);
+	tm.Forward(refLon, lat, lon, pointX, pointY); */
+    double lonmin = (lon - refLon)*60;
+    double lonsec = (lonmin - int(lonmin))*60;
+    int xIndex = int(lonmin)*60+int(lonsec);
+    double latmin = (lat - refLat)*60;
+    double latsec = (latmin - int(latmin))*60;
+    int yIndex = int(latmin)*60+int(latsec);
+    
+	//int xIndex = (int)(pointX - refX)/dx;
+	//int yIndex = (int)(pointY - refY)/dy;
 	int pixel = yIndex*xsize + xIndex;
 	if ((pixel >= 0) and (pixel < npixels)) {
 		return elevations[pixel];
@@ -153,7 +160,7 @@ bool DEM::dumpAscii(int skip)
     int flength = strlen(demFilename);
 
 	outfile = (char *) malloc(flength);
-	strncpy(outfile,demFilename,flength-4);
+	strncpy(outfile,demFilename,flength-2);
 	strcat(outfile, ".asc\0");
 	out = fopen(outfile, "w");
 	printf("Writing to %s\n\n",outfile);
@@ -175,6 +182,9 @@ bool DEM::dumpAscii(int skip)
 	for( y = 0; y < ysize; y+=skip ) {
 		for( x = 0; x < xsize; x+=skip ) {
 			fprintf(out, "%6d", elevations[y*xsize + x]);
+            //if (elevations[y*xsize + x] == 1477) {
+            //    fprintf(out, "%6d, %6d, %6d", x, y, elevations[y*xsize + x]);
+            //}
 		}
 		fprintf(out, "\n");
 	}
