@@ -39,9 +39,9 @@ class RadarQC < QCscript
      super(args[:from],args[:to])
   end
 
-  # Syntax: flagSurfaceGates :with_beamwidth => '2.0' :in => 'GG'
+  # Syntax: flagSurfaceGates :with_beamwidth => '2.0' :in => 'GG', [optional] :using => 'ASTGTM2_N46E008_dem.tif'
   def flagSurfaceGates(args)
-     probGroundGates("ZZ", args[:in], args[:with_beamwidth].to_f);
+     probGroundGates("ZZ", args[:in], args[:with_beamwidth].to_f, args[:using]);
   end
 
   # Syntax: calcRatio :of => 'SW', :over => 'ZZ', :in => 'SWZ', [optional] :using => 'linear_z'

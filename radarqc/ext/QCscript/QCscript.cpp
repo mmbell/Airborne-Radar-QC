@@ -99,11 +99,12 @@ void QCscript::rb_thresholdData(const std::string& threshfield, const std::strin
 }
 
 void QCscript::rb_probGroundGates(const std::string& oriFieldName, const std::string& newFieldName,
-                                  float eff_beamwidth)
+                                  float eff_beamwidth, const std::string& demFilename)
 {
         QString ori = QString::fromStdString(oriFieldName);
         QString fld = QString::fromStdString(newFieldName);
-        probGroundGates(ori,fld,eff_beamwidth);
+		QString dem = QString::fromStdString(demFilename);
+        probGroundGates(ori,fld,eff_beamwidth,dem);
 }
 
 void QCscript::rb_despeckleRadial(const std::string& fieldName, int speckle)

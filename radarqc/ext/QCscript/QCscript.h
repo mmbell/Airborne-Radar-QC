@@ -28,7 +28,7 @@ public:
      void rb_thresholdData(const std::string& threshfield, const std::string& fldname,
                            float threshold, const std::string& direction = "below");
      void rb_probGroundGates(const std::string& oriFieldName, const std::string& newFieldName,
-			     float eff_beamwidth);
+			     float eff_beamwidth, const std::string& demFilename);
      void rb_despeckleRadial(const std::string& fieldName, int speckle);
      void rb_despeckleAzimuthal(const std::string& fieldName, int speckle);
      void rb_copyEdits(const std::string& oriFieldName, const std::string& newFieldName);
