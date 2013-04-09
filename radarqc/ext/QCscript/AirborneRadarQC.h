@@ -121,7 +121,7 @@ public:
 	void verify();
 	void soloiiScriptROC();
 	void soloiiScriptVerification();
-	
+	void histogram(const QString& fldname, double min = 999999.0, double max = -999999.0, double interval = 0.0);
 private:
 	QList<QString> swpfileList;
 	QDir dataPath;

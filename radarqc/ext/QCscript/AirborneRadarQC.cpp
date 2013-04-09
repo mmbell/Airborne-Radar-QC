@@ -88,11 +88,10 @@ bool AirborneRadarQC::processSweeps()
 			//thresholdData("NCP", "ZZ", 0.2, "below");
 			//thresholdData("NCP","VQC", 0.2, "below");
 			
-			probGroundGates("ZZ", "GG", 2.0, "ASTGTM2_N46E008_dem.tif");
+			//probGroundGates("ZZ", "GG", 2.0, "ASTGTM2_N46E008_dem.tif");
 			//thresholdData("GG","ZZ", 0.7, "above");
 			//thresholdData("GG","VQC", 0.7, "above");
 			
-			//calcRatio("SW", "ZZ", "SWZ", true);
 			//thresholdData("SWZ","ZZ", 0.6, "above");
 			//thresholdData("SWZ","VQC", 0.6, "above");
 
@@ -105,6 +104,11 @@ bool AirborneRadarQC::processSweeps()
 			// Dump the data to compare the fore and aft radars to a text file
 			//QC.dumpFLwind();
 			
+            histogram("NCP", 0.0, 1.0, 0.05);
+			calcRatio("SW", "ZZ", "SWZ", true);
+			histogram("SW", 0.0, 10.0, 0.5);
+            histogram("SWZ", 0.0, 2.0, 0.1);
+            histogram("ZZ", -35.0, 60.0, 5.0);
 			/* Skill statistics */
 			/* QC.wxProbability2();
 			 QC.BrierSkillScore();
@@ -113,7 +117,7 @@ bool AirborneRadarQC::processSweeps()
 			 QC.soloiiScriptROC(); */
 			
 			// Write it back out
-			saveQCedSwp(f);
+			//saveQCedSwp(f);
 			
 		}
 	}
@@ -501,10 +505,10 @@ void AirborneRadarQC::calcRatio(const QString& topFieldName, const QString& bott
 				} else {
 					z = bottom[n];
 				}
-				if (z != 0.0) {
+				if ((z > 0.0) and (z < 1.0)) {
 					float ratio = top[n]/z;
-					if (ratio > 10) ratio = 10;
-					newdata[n] = ratio/10;
+					if (ratio > 100) ratio = 100;
+					newdata[n] = log10(ratio); ///10;
 				} else {
 					newdata[n] = -32768.;
 				}
@@ -3010,7 +3014,54 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 		}
 	}		
 	
-}	
+}
+
+void AirborneRadarQC::histogram(const QString& fldname, double min, double max, double interval) {
+	
+    QFile verifyFile;
+	QTextStream vout(&verifyFile);
+	QString fileName = fldname + "_histogram.txt";
+	verifyFile.setFileName(fileName);
+	verifyFile.open(QIODevice::Append | QIODevice::WriteOnly);
+	if ((max == -999999) and (min = -999999)) {
+		for (int i=0; i < swpfile.getNumRays(); i++)  {
+			float* data = swpfile.getRayData(i, fldname);
+			for (int n=0; n < swpfile.getNumGates(); n++) {
+	            if (data[n] != -32768.) {
+	                if (data[n] > max) max = data[n];
+	                if (data[n] < min) min = data[n];
+	            }
+	        }
+	    }
+	    interval = (max - min)/100.;
+	}
+	int bins = int((max - min)/interval + 1);
+    float good[bins], bad[bins];
+    for (int i=0; i<bins; i++) {
+        good[i] = 0;
+        bad[i] = 0;
+    }
+    for (int i=0; i < swpfile.getNumRays(); i++)  {
+		float* data = swpfile.getRayData(i, fldname);
+        float* test = swpfile.getRayData(i, "VG");
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+            if (data[n] != -32768.) {
+                int index = int((data[n] - min)/interval);
+				if (index < 0) { index = 0; }
+				if (index > (bins-1)) { index = bins-1; }
+                if (test[n] == -32768.) {
+                    bad[index]++;
+                } else {
+                    good[index]++;
+                }
+            }
+		}
+	}
+    for (int i=0; i<bins; i++) {
+        vout << fldname << "\t" << interval*i+min << "\t" << good[i] << "\t" << bad[i] << "\n";
+    }
+    verifyFile.close();
+}
 
 /****************************************************************************************
 ** mapRefTexture : This subroutine maps the reflectivity texture field.
