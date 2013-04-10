@@ -105,8 +105,8 @@ bool AirborneRadarQC::processSweeps()
 			// Dump the data to compare the fore and aft radars to a text file
 			//QC.dumpFLwind();
 			
-            /* histogram("NCP", 0.0, 1.0, 0.05);
 			calcRatio("SW", "ZZ", "SWZ", true);
+            /* histogram("NCP", 0.0, 1.0, 0.05);			
 			histogram("SW", 0.0, 10.0, 0.5);
             histogram("SWZ", 0.0, 2.0, 0.1);
             histogram("ZZ", -35.0, 60.0, 5.0); */
@@ -507,7 +507,7 @@ void AirborneRadarQC::calcRatio(const QString& topFieldName, const QString& bott
 				} else {
 					z = bottom[n];
 				}
-				if ((z > 0.0) and (z < 1.0)) {
+				if (z > 0.0) {
 					float ratio = top[n]/z;
 					if (ratio > 100) ratio = 100;
 					newdata[n] = log10(ratio); ///10;
