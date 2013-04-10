@@ -83,12 +83,13 @@ bool AirborneRadarQC::processSweeps()
 			
 			//setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
 			//setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
-			removeAircraftMotion("VR", "VQC");
+			//removeAircraftMotion("VR", "VQC");
 			
 			//thresholdData("NCP", "ZZ", 0.2, "below");
 			//thresholdData("NCP","VQC", 0.2, "below");
 			
 			//probGroundGates("ZZ", "GG", 2.0, "ASTGTM2_N46E008_dem.tif");
+			probGroundGates("ZZ", "GG", 2.0);
 			//thresholdData("GG","ZZ", 0.7, "above");
 			//thresholdData("GG","VQC", 0.7, "above");
 			
@@ -104,11 +105,12 @@ bool AirborneRadarQC::processSweeps()
 			// Dump the data to compare the fore and aft radars to a text file
 			//QC.dumpFLwind();
 			
-            histogram("NCP", 0.0, 1.0, 0.05);
+            /* histogram("NCP", 0.0, 1.0, 0.05);
 			calcRatio("SW", "ZZ", "SWZ", true);
 			histogram("SW", 0.0, 10.0, 0.5);
             histogram("SWZ", 0.0, 2.0, 0.1);
-            histogram("ZZ", -35.0, 60.0, 5.0);
+            histogram("ZZ", -35.0, 60.0, 5.0); */
+				
 			/* Skill statistics */
 			/* QC.wxProbability2();
 			 QC.BrierSkillScore();
@@ -117,7 +119,7 @@ bool AirborneRadarQC::processSweeps()
 			 QC.soloiiScriptROC(); */
 			
 			// Write it back out
-			//saveQCedSwp(f);
+		    saveQCedSwp(f);
 			
 		}
 	}
@@ -2962,40 +2964,70 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 	float* gates = swpfile.getGateSpacing();
 	int numgates = swpfile.getNumGates();
 	float max_range = gates[numgates-1];
-	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		// Clear the ray
-		for (int n=0; n < numgates; n++) {
-			if (data[n] != -32768.) data[n] = 0;
-            
-		}
-		
-		// Find the intersection with the main beam
-        float az = swpfile.getAzimuth(i)*0.017453292;
-		float elev = (swpfile.getElevation(i)-(eff_beamwidth*0.5))*0.017453292;
-		float tan_elev = tan(elev);
-        float radarLat = swpfile.getRadarLat(i);
-		float radarLon = swpfile.getRadarLon(i);
-        double radarX, radarY;
-		tm.Forward(radarLon, radarLat, radarLon, radarX, radarY);
-		float radarAlt = swpfile.getRadarAltMSL(i)*1000;
+	for (int g=0; g< numgates; g++) {
+		float left_distance = max_range;
+		float right_distance = max_range;
+		int left_index = -999;
+		int right_index = -999;
 		float ground_intersect = 0;
-		ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
-		if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
-			continue;
+		for (int i=0; i < swpfile.getNumRays(); i++)  {
+			// Clear the gate
+			float* data = swpfile.getRayData(i, newFieldName);
+			if (data[g] != -32768.) data[g] = 0;
+			
+			// Find the beam axis intersection with the ground
+	        float az = swpfile.getAzimuth(i)*0.017453292;
+			float elev = (swpfile.getElevation(i))*0.017453292;
+			if (elev > 0) { continue; }
+			float tan_elev = tan(elev);
+			float radarAlt = swpfile.getRadarAlt(i)*1000;
+			if (gates[g] < radarAlt) { continue; }
+			ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
+			if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
+				continue;
+			}
+			ground_intersect = fabs(ground_intersect-gates[g]);
+			if ((ground_intersect < left_distance) and (az > 3.14159)) {
+				left_distance = ground_intersect;
+				left_index = i;
+			}
+			if ((ground_intersect < right_distance) and (az <= 3.14159)){
+				right_distance = ground_intersect;
+				right_index = i;
+			}
 		}
+		if ((left_index < 0) or (right_index < 0)) { continue; }
+		for (int i=0; i < swpfile.getNumRays(); i++)  {
+			float* data = swpfile.getRayData(i, newFieldName);
+	        float az = swpfile.getAzimuth(i)*0.017453292;
+			float elev = (swpfile.getElevation(i))*0.017453292;
+			float tan_elev = tan(elev);
+			float radarAlt = swpfile.getRadarAlt(i)*1000;
+			float azground, elevground;
+			if (az > 3.14159) {
+				azground = swpfile.getAzimuth(left_index)*0.017453292;
+				elevground = (swpfile.getElevation(left_index))*0.017453292;
+			} else {
+				azground = swpfile.getAzimuth(right_index)*0.017453292;
+				elevground = (swpfile.getElevation(right_index))*0.017453292;
+			}
+			float azoffset = az - azground;
+			float eloffset = elev - elevground;
+			ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
+			if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
+				continue;
+			}
 		
-		// 3 gate offset
-		ground_intersect -= 3*(gates[2]-gates[1]);
-		
-		// Calculate prob based on Gaussian beam shape
-        double absLat, absLon, h;
-		for (int g=0; g< numgates; g++) {
+			// Calculate prob based on Flat-panel beam shape
+	        double absLat, absLon, h;
             if (demFlag) {
                 double range = gates[g];
                 double relX = range*sin(az)*cos(elev);
                 double relY = range*cos(az)*cos(elev);
+		        float radarLat = swpfile.getRadarLat(i);
+				float radarLon = swpfile.getRadarLon(i);
+		        double radarX, radarY;
+				tm.Forward(radarLon, radarLat, radarLon, radarX, radarY);				
                 tm.Reverse(radarLon, radarX + relX, radarY + relY, absLat, absLon);
                 h = asterDEM.getElevation(absLat, absLon);
                 //if (g == 0) { std::cout << absLat << "\t" << absLon << "\t" << h << "\n"; }
@@ -3006,7 +3038,16 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 			if (grange <= 0) {
 				if (data[g] != -32768.) data[g]	= 1.;
 			} else {
-				float gprob = exp(-grange/(ground_intersect*0.33));
+				// Alternate exponential formula
+				//float gprob = exp(-grange/(ground_intersect*0.33));
+				float beamaxis = sqrt(azoffset*azoffset + eloffset*eloffset);
+				float gprob = 0.0;
+				if (beamaxis > 0) {
+				    gprob = fabs(sin(27*sin(beamaxis))/(27*sin(beamaxis)));
+			    } else {
+					gprob = 1.0;
+				}
+				if (gprob > 1.0) gprob = 1.0;
 				if (data[g] != -32768.) data[g]	= gprob;
 				//printf("Ground (%f) %f / %f\n",elev,grange,footprint);
 			}
