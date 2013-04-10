@@ -3041,9 +3041,11 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 				// Alternate exponential formula
 				//float gprob = exp(-grange/(ground_intersect*0.33));
 				float beamaxis = sqrt(azoffset*azoffset + eloffset*eloffset);
+				float beamwidth = eff_beamwidth*0.017453292;
 				float gprob = 0.0;
 				if (beamaxis > 0) {
-				    gprob = fabs(sin(27*sin(beamaxis))/(27*sin(beamaxis)));
+					gprob = exp(-0.69314718055995*beamaxis/beamwidth);
+				    //gprob = fabs(sin(27*sin(beamaxis))/(27*sin(beamaxis)));
 			    } else {
 					gprob = 1.0;
 				}
