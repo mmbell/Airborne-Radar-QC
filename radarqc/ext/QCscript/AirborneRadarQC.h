@@ -99,13 +99,14 @@ public:
 	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth,
                          const QString& demFileName = 0);
 	void calcWeatherProb(const QString& mdbzt_name, const QString& mdbzs_name, const QString& mdbzl_name, const QString& mvgs_name, const QString& mncp_name);
+	void wxProbability(const QString& oriFieldName, const QString& probFieldName, float* weight);
 	void wxProbability2();
-	void mapRefTexture(const QString& fldname);
-	void mapMeanRef(const QString& fldname);
-	void mapRefSpin(const QString& fldname);
-	void mapVelStd(const QString& fldname);
-	void mapNCP(const QString& fldname);
-	void mapRefLaplacian(const QString& fldname);
+	float mapGradient(const float& value);
+	float mapStdDev(const float& std);
+	float mapNCP(const float& ncp);
+	float mapLaplacian(const float& lap);
+	float mapMixedPartial(const float& mp);
+	float mapSWZ(const float& swz);
 
 	// Other
 	void compareForeAftRef();

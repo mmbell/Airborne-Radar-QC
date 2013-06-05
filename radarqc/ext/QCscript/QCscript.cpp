@@ -8,9 +8,11 @@
 
 #include "rice/Data_Type.hpp"
 #include "rice/Constructor.hpp"
+#include "rice/Array.hpp"
 #include "QCscript.h"
 #include "AirborneRadarQC.h"
 #include <QString>
+#include <iostream>
 
 using namespace Rice;
 
@@ -39,7 +41,8 @@ void Init_QCscript(void)
       .define_method("calcRatio", &QCscript::rb_calcRatio)
       .define_method("despeckleRadial", &QCscript::rb_despeckleRadial)
       .define_method("despeckleAzimuthal", &QCscript::rb_despeckleAzimuthal)
-      .define_method("copyEdits", &QCscript::rb_copyEdits);
+      .define_method("copyEdits", &QCscript::rb_copyEdits)
+	  .define_method("wxProbability", &QCscript::rb_wxProbability);
   }
   RUBY_CATCH
 } 
@@ -145,7 +148,15 @@ void QCscript::rb_setNavigationCorrections(const std::string& cfacFileName, cons
 void QCscript::rb_removeAircraftMotion(const std::string& vrFieldName, const std::string& vgFieldName)
 {
         QString vr = QString::fromStdString(vrFieldName);
-	QString vg = QString::fromStdString(vgFieldName);
-	removeAircraftMotion(vr,vg);
+		QString vg = QString::fromStdString(vgFieldName);
+		removeAircraftMotion(vr,vg);
 }
 
+void QCscript::rb_wxProbability(const std::string& vgFieldName, const std::string& wxFieldName, const Rice::Array weight)
+{
+        QString vg = QString::fromStdString(vgFieldName);
+		QString wx = QString::fromStdString(wxFieldName);
+		c_weight = new float[7];
+		for (int i=0; i< 7; i++) c_weight[i] = from_ruby<float>(weight[i]);
+		wxProbability(vg,wx,c_weight);
+}

@@ -11,17 +11,17 @@ GEM
       rake
     rcov (0.9.9)
     rdoc (3.8)
-    rice (1.4.2)
+    rice (1.5.1)
     shoulda (2.11.3)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 1.0.0)
+  bundler (~> 1.2.0)
   jeweler (~> 1.6.4)
   rake-compiler (>= 0.7.9)
   rcov
   rdoc (>= 2.4.2)
-  rice (~> 1.4.2)
+  rice (~> 1.5.1)
   shoulda
