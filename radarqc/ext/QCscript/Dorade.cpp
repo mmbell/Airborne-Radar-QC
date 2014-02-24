@@ -16,17 +16,17 @@ Dorade::Dorade()
 	rptr = new radd_info;
 	cptr = new celv_info;
 	cfptr = new cfac_info;
-	pptr = new parm_info[20];
+	pptr = new parm_info[40];
 	sptr = new swib_info;
-	ryptr = new ryib_info[1000];
-	aptr = new asib_info[1000];
-	dptr = new rdat_info*[20];
-	for (int i=0; i<20; i++) {
-		dptr[i] = new rdat_info[1000];
+	ryptr = new ryib_info[1500];
+	aptr = new asib_info[1500];
+	dptr = new rdat_info*[40];
+	for (int i=0; i<40; i++) {
+		dptr[i] = new rdat_info[1500];
 	}
-	rangles = new radar_angles[1000];
+	rangles = new radar_angles[1500];
 	rkptr = new rktb_info;
-	rtptr = new rot_table_entry[1000];
+	rtptr = new rot_table_entry[1500];
 	refIndex = velIndex = swIndex = 0;
 	ref_fld = "DBZ";
 	vel_fld = "VG";
@@ -42,17 +42,17 @@ Dorade::Dorade(const QString& swpFilename)
 	rptr = new radd_info;
 	cptr = new celv_info;
 	cfptr = new cfac_info;
-	pptr = new parm_info[20];
+	pptr = new parm_info[40];
 	sptr = new swib_info;
-	ryptr = new ryib_info[1000];
-	aptr = new asib_info[1000];
-	dptr = new rdat_info*[20];
-	for (int i=0; i<20; i++) {
-		dptr[i] = new rdat_info[1000];
+	ryptr = new ryib_info[1500];
+	aptr = new asib_info[1500];
+	dptr = new rdat_info*[40];
+	for (int i=0; i<40; i++) {
+		dptr[i] = new rdat_info[1500];
 	}
-	rangles = new radar_angles[1000];
+	rangles = new radar_angles[1500];
 	rkptr = new rktb_info;
-	rtptr = new rot_table_entry[1000];
+	rtptr = new rot_table_entry[1500];
 	refIndex = velIndex = swIndex = 0;
 	ref_fld = "DBZ";
 	vel_fld = "VG";
@@ -73,7 +73,7 @@ Dorade::~Dorade()
 	delete sptr;
 	delete[] ryptr;
 	delete[] aptr;
-	for (int i=0; i<20; i++) {
+	for (int i=0; i<40; i++) {
 		delete[] dptr[i];
 	}
 	delete[] dptr;

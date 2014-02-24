@@ -34,6 +34,7 @@ public:
 	bool setInputPath(const QString& in);
 	QString getOutputPath();
 	bool setOutputPath(const QString& out);
+	void writeToCSV();
 	
 	// QC
 	bool processSweeps();
@@ -48,6 +49,8 @@ public:
 	void GaussianSmooth(const QString& oriFieldName, const QString& newFieldName, const int& scale);
 	void GaussianSmooth(const QString& oriFieldName, float** field, const int& scale);
 	void swpField2array(const QString& oriFieldName, float** field);
+	void array2swpField(float** field, const QString& oriFieldName);
+	void array2swpField(float** field, const QString& oriFieldName, const QString& newFieldName);
 	void copyEdits(const QString& oriFieldName,const QString& newFieldName);
 	
 	// REC Fields
@@ -55,6 +58,9 @@ public:
 	void calcSpinSteiner(const QString& oriFieldName, const QString& fldname);
 	void calcSpinKessinger(const QString& oriFieldName, const QString& fldname);
 	void calcStdDev(const QString& oldFieldName, const QString& fldname);
+	void calcStdDev(const QString& oldFieldName, float** field);
+	void calcStdDev(float** orifield, float** field);
+	
 	void calcMeanRef(const QString& fldname);
 	void calcSpatialMean(const QString& oriFieldName, const QString& newFieldName, const int& gateWindow, const int& rayWindow);
 	void calcTemporalMean(const QString& oriFieldName, const QString& newFieldName);
@@ -98,6 +104,7 @@ public:
 	// Probabilities
 	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth,
                          const QString& demFileName = 0);
+	void probGroundGates(float** field, const float& eff_beamwidth, const QString& demFileName = 0);					 
 	void calcWeatherProb(const QString& mdbzt_name, const QString& mdbzs_name, const QString& mdbzl_name, const QString& mvgs_name, const QString& mncp_name);
 	void wxProbability(const QString& oriFieldName, const QString& probFieldName, float* weight);
 	void wxProbability2();

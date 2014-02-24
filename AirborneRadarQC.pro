@@ -21,3 +21,4 @@ SOURCES += $$SOURCEPATH/AirborneRadarQC.cpp \
 	   $$SOURCEPATH/DEM.cpp \
 	   main.cpp
 LIBS += -lgeotiff -ltiff -lgeographic
+CONFIG += debug
