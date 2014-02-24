@@ -8,6 +8,8 @@
 
 #include "AirborneRadarQC.h"
 #include "RecursiveFilter.h"
+#include "DEM.h"
+#include <GeographicLib/TransverseMercatorExact.hpp>
 #include <iterator>
 #include <fstream>
 #include <iostream>
@@ -79,44 +81,77 @@ bool AirborneRadarQC::processSweeps()
 			
 			std::cout << "Processing " << swpfile.getFilename().toStdString() << "\n";
 			
-			//setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
-			//setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
-			removeAircraftMotion("VR", "VQC");
+			// Use these to apply navigation corrections
+			setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
+			setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
 			
-			thresholdData("NCP", "ZZ", 0.2, "below");
-			thresholdData("NCP","VQC", 0.2, "below");
+			removeAircraftMotion("VR", "VG");
 			
-			probGroundGates("ZZ", "GG", 2.0);
-			thresholdData("GG","ZZ", 0.7, "above");
-			thresholdData("GG","VQC", 0.7, "above");
+			thresholdData("NCP", "VG", 0.2, "below");
 			
+			//Flat terrain
+			probGroundGates("ZZ", "GG", 1.8);
+
+			// Complex terrain			
+			//probGroundGates("DBZ", "GG", 2.0, "ASTGTM2_N46E008_dem.tif");
+
+			thresholdData("GG","VG", 0.7, "above");						
+			//thresholdData("GG","ZZ", 0.9, "above");
+
+			///SW/Z thresholding
 			calcRatio("SW", "ZZ", "SWZ", true);
-			thresholdData("SWZ","ZZ", 0.6, "above");
-			thresholdData("SWZ","VQC", 0.6, "above");
+			thresholdData("SWZ","VG", 0.6, "above");
 
-			despeckleRadial("ZZ", 2);
-			despeckleRadial("VQC", 2);
+			// Despeckle
+			despeckleRadial("VG", 5);
+			despeckleAzimuthal("VG", 5);
 
-			despeckleAzimuthal("ZZ", 2);
-			despeckleAzimuthal("VQC", 2);
+			/* Calculate KDP 
+			despeckleRadial("PHIDP", 2);			
+			GaussianSmooth("PHIDP", "KDP2", 3);
+			calc1stRadialDerivative("KDP2", "KDP3", 2); */
+
+			/* Calculate various gradients
+			calcStdDev("VV","VSTD");
+			calcLaplacian("VV","VLP");
+			calcMixedPartial("VV","VMP");
+			calcGradientMagnitude("VV","VGR",2); */
+						
+			/* Histograms of QC parameters
+            histogram("NCP", 0.0, 1.0, 0.05);		
+			histogram("VSD", 0.0, 30.0, 1.0);
+            histogram("SWZ", 0.0, 1.0, 0.05);
+            histogram("VLP", -10.0, 10.0, 1.0);
+			histogram("VMP", -10.0, 10.0, 1.0);
+			histogram("GG", 0.0, 1.0, 0.05);
+			histogram("VGR", 0.0, 20.0, 1.0); */
 			
-			// Dump the data to compare the fore and aft radars to a text file
-			//QC.dumpFLwind();
+			/* WxProbability
+			float weights[7];
+			for (int i =0; i<7; i++) weights[i] = 1.0;
+			wxProbability("VG","WXP",weights); */
 			
-			/* Skill statistics */
-			/* QC.wxProbability2();
-			 QC.BrierSkillScore();
-			 QC.RelativeOperatingCharacteristic();
-			 QC.ReliabilityDiagram();
-			 QC.soloiiScriptROC(); */
+			/* Skill statistics on individual sweeps
+			 BrierSkillScore();
+			 RelativeOperatingCharacteristic();
+			 ReliabilityDiagram();
+			 soloiiScriptROC(); */
+			
+	 		// Copy edits to reflectivity
+	 		copyEdits("VG","DBZ");
 			
 			// Write it back out
-			saveQCedSwp(f);
-			
+		    saveQCedSwp(f);
+			 
+			// Dump the data to compare the flight level wind and radar data
+			//dumpFLwind();
+			 
+			// Write out everything to a (big) CSV file
+			//writeToCSV();
 		}
 	}
 	
-	/* Verification statistics */
+	/* Verification statistics over all sweeps*/
 	//QC.verify();
 	//QC.soloiiScriptVerification();
 	
@@ -463,6 +498,35 @@ void AirborneRadarQC::swpField2array(const QString& oriFieldName, float** field)
 	
 }
 
+void AirborneRadarQC::array2swpField(float** field, const QString& oriFieldName, const QString& newFieldName)
+{
+	QString newFieldDesc = "Array";
+	QString newFieldUnits = "Unknown";
+	if(!newField(oriFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
+		printf("Error creating new field!!!\n");
+		return;
+	}	
+	for (int i=0; i < swpfile.getNumRays(); i++)  {
+		float* newdata = swpfile.getRayData(i, newFieldName);
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+			newdata[n] = field[i][n];
+		}
+	}
+	
+}
+
+void AirborneRadarQC::array2swpField(float** field, const QString& oriFieldName)
+{
+
+	for (int i=0; i < swpfile.getNumRays(); i++)  {
+		float* oridata = swpfile.getRayData(i, oriFieldName);
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+			oridata[n] = field[i][n];
+		}
+	}
+	
+}
+
 void AirborneRadarQC::copyEdits(const QString& oriFieldName,const QString& newFieldName)
 {
 
@@ -499,10 +563,10 @@ void AirborneRadarQC::calcRatio(const QString& topFieldName, const QString& bott
 				} else {
 					z = bottom[n];
 				}
-				if (z != 0.0) {
+				if (z > 0.0) {
 					float ratio = top[n]/z;
-					if (ratio > 10) ratio = 10;
-					newdata[n] = ratio/10;
+					if (ratio > 100) ratio = 100;
+					newdata[n] = log10(ratio) / 2.0;
 				} else {
 					newdata[n] = -32768.;
 				}
@@ -710,7 +774,7 @@ void AirborneRadarQC::calcStdDev(const QString& oriFieldName, const QString& fld
 			N = 0;
 			for (int ri=i-rayWindow/2; ri <= i+rayWindow/2; ri++) {
 				ray_index = getRayIndex(ri, swpfile.getNumRays());
-				float* veldata = swpfile.getRadialVelocity(ray_index);
+				float* veldata = swpfile.getRayData(ray_index, oriFieldName);
 				for (int gi=n-gateWindow/2; gi <= n+gateWindow/2; gi++) {
 					if ((gi >= 0) && (gi < swpfile.getNumGates())) {
 						if (veldata[gi] > minvel) {
@@ -729,7 +793,7 @@ void AirborneRadarQC::calcStdDev(const QString& oriFieldName, const QString& fld
 				sum = 0.0;
 				for (int ri=i-rayWindow/2; ri <= i+rayWindow/2; ri++) {
 					ray_index = getRayIndex(ri, swpfile.getNumRays());
-					float* veldata = swpfile.getRadialVelocity(ray_index);
+					float* veldata = swpfile.getRayData(ray_index, oriFieldName);
 					for (int gi=n-gateWindow/2; gi <= n+gateWindow/2; gi++) {
 						if ((gi >= 0)  && (gi < swpfile.getNumGates())) {
 							if (veldata[gi] > minvel) {
@@ -745,6 +809,133 @@ void AirborneRadarQC::calcStdDev(const QString& oriFieldName, const QString& fld
 			} else data[n] = -32768.0;
 		}
 	}
+}
+
+/****************************************************************************************
+** calcStdDev : Same as above but to a 2-D array
+****************************************************************************************/
+void AirborneRadarQC::calcStdDev(const QString& oriFieldName, float** field) {
+	float sum, mean;
+	int ray_index, N;
+	int gateWindow = 2;
+	int rayWindow = 2;
+	float minvel = -999;
+	int rays = swpfile.getNumRays();
+	int gates = swpfile.getNumGates();
+	
+	float** orifield = new float*[rays];
+	for (int i=0; i < rays; i++)  {
+		orifield[i] = new float[gates];
+		float* data = swpfile.getRayData(i, oriFieldName);
+		for (int n=0; n < gates; n++) {
+			orifield[i][n] = data[n];
+		}
+	}
+
+	for (int i=0; i < rays; i++)  {
+		for (int n=0; n < gates; n++) {
+			// Calculate the mean velocity
+			sum = 0.0;
+			N = 0;
+			for (int ri=i-rayWindow/2; ri <= i+rayWindow/2; ri++) {
+				ray_index = getRayIndex(ri, rays);
+				for (int gi=n-gateWindow/2; gi <= n+gateWindow/2; gi++) {
+					if ((gi >= 0) && (gi < gates)) {
+						if (orifield[ray_index][gi] > minvel) {
+							N++;
+							sum = sum + orifield[ray_index][gi];
+						}
+					}
+				}
+			}
+			// If a mean is able to be calculated then go through the rest of the steps
+			// At least two good values are required in order to calculate a STD
+			if (N > 1) {
+				mean = sum / float(N);
+				
+				// Now calculate the deviations, square them, and sum them
+				sum = 0.0;
+				for (int ri=i-rayWindow/2; ri <= i+rayWindow/2; ri++) {
+					ray_index = getRayIndex(ri, rays);
+					for (int gi=n-gateWindow/2; gi <= n+gateWindow/2; gi++) {
+						if ((gi >= 0)  && (gi < gates)) {
+							if (orifield[ray_index][gi] > minvel) {
+								// Sum the square of the differences
+								sum = sum + (pow(mean - orifield[ray_index][gi], 2.0));
+							}
+						}
+					}
+				}
+				
+				// Divide the sum by one less than the number of values and take the square root
+				field[i][n] = pow(sum / float(N-1), 0.5);
+			} else field[i][n] = -32768.0;
+		}
+	}
+	for (int i=0; i < rays; i++)  {
+		delete[] orifield[i];
+	}
+	delete[] orifield;
+	
+}
+
+/****************************************************************************************
+** calcStdDev : Same as above but from and to a 2-D array
+****************************************************************************************/
+void AirborneRadarQC::calcStdDev(float** orifield, float** field) {
+	float sum, mean;
+	int ray_index, N;
+	int gateWindow = 2;
+	int rayWindow = 2;
+	float minvel = -999;
+	int rays = swpfile.getNumRays();
+	int gates = swpfile.getNumGates();
+	
+	for (int i=0; i < rays; i++)  {
+		for (int n=0; n < gates; n++) {
+			// Calculate the mean velocity
+			sum = 0.0;
+			N = 0;
+			for (int ri=i-rayWindow/2; ri <= i+rayWindow/2; ri++) {
+				ray_index = getRayIndex(ri, rays);
+				for (int gi=n-gateWindow/2; gi <= n+gateWindow/2; gi++) {
+					if ((gi >= 0) && (gi < gates)) {
+						if (orifield[ray_index][gi] > minvel) {
+							N++;
+							sum = sum + orifield[ray_index][gi];
+						}
+					}
+				}
+			}
+			// If a mean is able to be calculated then go through the rest of the steps
+			// At least two good values are required in order to calculate a STD
+			if (N > 1) {
+				mean = sum / float(N);
+				
+				// Now calculate the deviations, square them, and sum them
+				sum = 0.0;
+				for (int ri=i-rayWindow/2; ri <= i+rayWindow/2; ri++) {
+					ray_index = getRayIndex(ri, rays);
+					for (int gi=n-gateWindow/2; gi <= n+gateWindow/2; gi++) {
+						if ((gi >= 0)  && (gi < gates)) {
+							if (orifield[ray_index][gi] > minvel) {
+								// Sum the square of the differences
+								sum = sum + (pow(mean - orifield[ray_index][gi], 2.0));
+							}
+						}
+					}
+				}
+				
+				// Divide the sum by one less than the number of values and take the square root
+				field[i][n] = pow(sum / float(N-1), 0.5);
+			} else field[i][n] = -32768.0;
+		}
+	}
+	for (int i=0; i < rays; i++)  {
+		delete[] orifield[i];
+	}
+	delete[] orifield;
+	
 }
 
 /****************************************************************************************
@@ -2221,6 +2412,61 @@ void AirborneRadarQC::compareFLwind()
 
 }
 
+void AirborneRadarQC::writeToCSV()
+{
+	
+	QFile veloutFile;
+	QTextStream velout(&veloutFile);
+	float radarLat = swpfile.getRadarLat();
+	float radarLon = swpfile.getRadarLon();
+	float radarAlt = swpfile.getRadarAlt();
+	QString radarName = swpfile.getRadarname();
+	double Pi = acos(-1);
+	QString veloutName = radarName + "_data.txt";
+	veloutFile.setFileName(veloutName);
+	veloutFile.open(QIODevice::Append | QIODevice::WriteOnly);
+	for (int i=0; i < swpfile.getNumRays(); i++) {
+		float az = swpfile.getAzimuth(i);
+		float el = swpfile.getElevation(i);
+		float* vg = swpfile.getRayData(i, "VG");
+		float* vb = swpfile.getRayData(i, "VB");
+		float* vstd = swpfile.getRayData(i,"VSTD");
+		float* vlp = swpfile.getRayData(i,"VLP");
+		float* vmp = swpfile.getRayData(i,"VMP");
+		float* vgr = swpfile.getRayData(i,"VGR");
+		float* zz = swpfile.getRayData(i,"ZZ");
+		float* gg = swpfile.getRayData(i,"GG");
+		float* gatesp = swpfile.getGateSpacing();
+
+		for (int n=0; n < swpfile.getNumGates(); n++) {
+			float vtest = vb[n];
+			if (vtest == -32768) continue;
+			float range = gatesp[n];
+			velout << radarName << ",";
+			double relX = -range*sin(az*Pi/180.)*cos(el*Pi/180.);
+			double relY = -range*cos(az*Pi/180.)*cos(el*Pi/180.);
+			double relZ = range*sin(el*Pi/180.);
+			double latrad = radarLat * Pi/180.0;
+			double fac_lat = 111.13209 - 0.56605 * cos(2.0 * latrad)
+			+ 0.00012 * cos(4.0 * latrad) - 0.000002 * cos(6.0 * latrad);
+			double fac_lon = 111.41513 * cos(latrad)
+			- 0.09455 * cos(3.0 * latrad) + 0.00012 * cos(5.0 * latrad);
+			double gateLon = radarLon - (relX/1000)/fac_lon;
+			double gateLat = radarLat - (relY/1000)/fac_lat;
+			double gateAlt = (relZ + radarAlt)*1000;
+			/* Bin to nearest 0.005 degrees and km altitude
+			double gridsp = 0.005;
+			gateLon = double(int(gateLon/gridsp))*gridsp;
+			gateLat = double(int(gateLat/gridsp))*gridsp;
+			gateAlt = double(int(gateAlt/1000.)); */
+			velout << gateLon << "," << gateLat << "," << gateAlt << ",";
+			velout << vg << "," << vb << "," << vstd << "," << vlp << ",";
+			velout << vmp << "," << vgr << "," << zz << "," << gg << ",";
+		}
+	}
+	veloutFile.close();
+}
+
 /* Remove the aircraft velocity from the Doppler velocity */
 void AirborneRadarQC::removeAircraftMotion(const QString& vrFieldName, const QString& vgFieldName)
 {
@@ -2932,9 +3178,20 @@ void AirborneRadarQC::soloiiScriptVerification()
  ** groundProbability : This subroutine calculates the probability that a given gate is ground
  using just the beamwidth
  ****************************************************************************************/
-void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth) 
+void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth,
+                                      const QString& demFileName)
 {
-	
+    bool demFlag = false;
+    DEM asterDEM;
+    GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
+	if (!demFileName.isEmpty()) {
+        if(!asterDEM.readDem(demFileName.toAscii().data())) {
+            printf("Error reading DEM file! Using flat ground instead\n");
+        } else {
+            demFlag = true;
+        }
+    }
+    //asterDEM.dumpAscii(1);
 	float earth_radius=6366805.6;
 	QString newFieldDesc = "Ground Gates";
 	QString newFieldUnits = "binary";
@@ -2945,34 +3202,92 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 	float* gates = swpfile.getGateSpacing();
 	int numgates = swpfile.getNumGates();
 	float max_range = gates[numgates-1];
-	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		// Clear the ray
-		for (int n=0; n < numgates; n++) {
-			if (data[n] != -32768.) data[n] = 0;
-		}
-		
-		// Find the intersection with the main beam
-		float elev = (swpfile.getElevation(i)-(eff_beamwidth*0.5))*0.017453292;
-		float tan_elev = tan(elev);
-		float alt = swpfile.getRadarAlt(i)*1000;
+	for (int g=0; g< numgates; g++) {
+		float left_distance = max_range;
+		float right_distance = max_range;
+		int left_index = -999;
+		int right_index = -999;
 		float ground_intersect = 0;
-		ground_intersect = (-(alt)/sin(elev))*(1.+alt/(2.*earth_radius*tan_elev*tan_elev));		
-		if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
-			continue;
+		for (int i=0; i < swpfile.getNumRays(); i++)  {
+			// Clear the gate
+			float* data = swpfile.getRayData(i, newFieldName);
+			if (data[g] != -32768.) data[g] = 0;
+			
+			// Find the beam axis intersection with the ground
+	        float az = swpfile.getAzimuth(i)*0.017453292;
+			float elev = (swpfile.getElevation(i))*0.017453292;
+			if (elev > 0) { continue; }
+			float tan_elev = tan(elev);
+			float radarAlt = swpfile.getRadarAlt(i)*1000;
+			if (gates[g] < radarAlt) { continue; }
+			ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
+			if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
+				continue;
+			}
+			ground_intersect = fabs(ground_intersect-gates[g]);
+			if ((ground_intersect < left_distance) and (az > 3.14159)) {
+				left_distance = ground_intersect;
+				left_index = i;
+			}
+			if ((ground_intersect < right_distance) and (az <= 3.14159)){
+				right_distance = ground_intersect;
+				right_index = i;
+			}
 		}
+		if ((left_index < 0) or (right_index < 0)) { continue; }
+		for (int i=0; i < swpfile.getNumRays(); i++)  {
+			float* data = swpfile.getRayData(i, newFieldName);
+	        float az = swpfile.getAzimuth(i)*0.017453292;
+			float elev = (swpfile.getElevation(i))*0.017453292;
+			float tan_elev = tan(elev);
+			float radarAlt = swpfile.getRadarAlt(i)*1000;
+			float azground, elevground;
+			if (az > 3.14159) {
+				azground = swpfile.getAzimuth(left_index)*0.017453292;
+				elevground = (swpfile.getElevation(left_index))*0.017453292;
+			} else {
+				azground = swpfile.getAzimuth(right_index)*0.017453292;
+				elevground = (swpfile.getElevation(right_index))*0.017453292;
+			}
+			float azoffset = az - azground;
+			float eloffset = elev - elevground;
+			ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
+			if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
+				continue;
+			}
 		
-		// 3 gate offset
-		ground_intersect -= 3*(gates[2]-gates[1]);
-		
-		// Calculate prob based on Gaussian beam shape
-		for (int g=0; g< numgates; g++) {
-			float grange = ground_intersect-gates[g];
+			// Calculate prob based on Flat-panel beam shape
+	        double absLat, absLon, h;
+            if (demFlag) {
+                double range = gates[g];
+                double relX = range*sin(az)*cos(elev);
+                double relY = range*cos(az)*cos(elev);
+		        float radarLat = swpfile.getRadarLat(i);
+				float radarLon = swpfile.getRadarLon(i);
+		        double radarX, radarY;
+				tm.Forward(radarLon, radarLat, radarLon, radarX, radarY);				
+                tm.Reverse(radarLon, radarX + relX, radarY + relY, absLat, absLon);
+                h = asterDEM.getElevation(absLat, absLon);
+                //if (g == 0) { std::cout << absLat << "\t" << absLon << "\t" << h << "\n"; }
+                double agl = radarAlt - h;
+                ground_intersect = (-(agl)/sin(elev))*(1.+agl/(2.*earth_radius*tan_elev*tan_elev));
+            }
+            float grange = ground_intersect-gates[g];
 			if (grange <= 0) {
 				if (data[g] != -32768.) data[g]	= 1.;
 			} else {
-				float gprob = exp(-grange/(ground_intersect*0.33));
+				// Alternate exponential formula
+				//float gprob = exp(-grange/(ground_intersect*0.33));
+				float beamaxis = sqrt(azoffset*azoffset + eloffset*eloffset);
+				float beamwidth = eff_beamwidth*0.017453292;
+				float gprob = 0.0;
+				if (beamaxis > 0) {
+					gprob = exp(-0.69314718055995*beamaxis/beamwidth);
+				    //gprob = fabs(sin(27*sin(beamaxis))/(27*sin(beamaxis)));
+			    } else {
+					gprob = 1.0;
+				}
+				if (gprob > 1.0) gprob = 1.0;
 				if (data[g] != -32768.) data[g]	= gprob;
 				//printf("Ground (%f) %f / %f\n",elev,grange,footprint);
 			}
@@ -2980,164 +3295,169 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
 		}
 	}		
 	
-}	
+}
 
 /****************************************************************************************
-** mapRefTexture : This subroutine maps the reflectivity texture field.
-****************************************************************************************/
-void AirborneRadarQC::mapRefTexture(const QString& fldname)  
+ ** groundProbability : This subroutine calculates the probability that a given gate is ground
+ using just the beamwidth to a 2-D array
+ ****************************************************************************************/
+void AirborneRadarQC::probGroundGates(float** field, const float& eff_beamwidth,
+                                      const QString& demFileName)
 {
-	float minref = -999;
-	
-	QString oldFieldName = "DBZT";
-	QString newFieldName = fldname;
-	QString newFieldDesc = "Reflectivity Texture Map";
-	QString newFieldUnits = "";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
-		printf("Error creating new field!!!\n");
-		return;
-	}
-
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		for (int n=0; n < swpfile.getNumGates(); n++) {
-			if (data[n] > minref) {
-				// Calculate the interest map
-				data[n] = calcRefTextInterestMap(data[n]);
+    bool demFlag = false;
+    DEM asterDEM;
+    GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
+	if (!demFileName.isEmpty()) {
+        if(!asterDEM.readDem(demFileName.toAscii().data())) {
+            printf("Error reading DEM file! Using flat ground instead\n");
+        } else {
+            demFlag = true;
+        }
+    }
+    //asterDEM.dumpAscii(1);
+	float earth_radius=6366805.6;
+	float* gates = swpfile.getGateSpacing();
+	int numgates = swpfile.getNumGates();
+	int numrays = swpfile.getNumRays();
+	float max_range = gates[numgates-1];
+	for (int g=0; g< numgates; g++) {
+		float left_distance = max_range;
+		float right_distance = max_range;
+		int left_index = -999;
+		int right_index = -999;
+		float ground_intersect = 0;
+		for (int i=0; i < numrays; i++)  {
+			// Clear the gate
+			if (field[i][g] != -32768.) field[i][g] = 0;
+			
+			// Find the beam axis intersection with the ground
+	        float az = swpfile.getAzimuth(i)*0.017453292;
+			float elev = (swpfile.getElevation(i))*0.017453292;
+			if (elev > 0) { continue; }
+			float tan_elev = tan(elev);
+			float radarAlt = swpfile.getRadarAlt(i)*1000;
+			if (gates[g] < radarAlt) { continue; }
+			ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
+			if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
+				continue;
 			}
-			else data[n] = 0.0;
-		}
-	}
-}
-
-/****************************************************************************************
-** mapMeanRef : This subroutine maps the mean reflectivity field.
-****************************************************************************************/
-void AirborneRadarQC::mapMeanRef(const QString& fldname)  
-{
-	float minref = -999;
-	
-	QString oldFieldName = "DBZM";
-	QString newFieldName = fldname;
-	QString newFieldDesc = "Mean Reflectivity Map";
-	QString newFieldUnits = "";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
-		printf("Error creating new field!!!\n");
-		return;
-	}
-	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		for (int n=0; n < swpfile.getNumGates(); n++) {
-			if (data[n] > minref) {
-				// Calculate the interest map
-				data[n] = calcMeanRefInterestMap(data[n]);
+			ground_intersect = fabs(ground_intersect-gates[g]);
+			if ((ground_intersect < left_distance) and (az > 3.14159)) {
+				left_distance = ground_intersect;
+				left_index = i;
 			}
-			else data[n] = 0.0;
-		}
-	}
-}
-
-/****************************************************************************************
-** mapRefSpin : This subroutine maps the reflectivity spin field.
-****************************************************************************************/
-void AirborneRadarQC::mapRefSpin(const QString& fldname)  
-{
-	float minref = -999;
-	
-	QString oldFieldName = "DBZS";
-	QString newFieldName = fldname;
-	QString newFieldDesc = "Reflectivity Spin Map";
-	QString newFieldUnits = "";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
-		printf("Error creating new field!!!\n");
-		return;
-	}
-	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		for (int n=0; n < swpfile.getNumGates(); n++) {
-			if (data[n] > minref) {
-				// Calculate the interest map
-				data[n] = calcRefSpinInterestMap(data[n]);
+			if ((ground_intersect < right_distance) and (az <= 3.14159)){
+				right_distance = ground_intersect;
+				right_index = i;
 			}
-			else data[n] = 0.0;
 		}
-	}
-}
-
-/****************************************************************************************
-** mapVelStd : This subroutine maps the standard deviation of the velocity field.
-****************************************************************************************/
-void AirborneRadarQC::mapVelStd(const QString& fldname)  
-{
-	float minvel = -999;
-	
-	QString oldFieldName = "VGS";
-	QString newFieldName = fldname;
-	QString newFieldDesc = "Velocity Std Deviation Map";
-	QString newFieldUnits = "";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
-		printf("Error creating new field!!!\n");
-		return;
-	}
-	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		for (int n=0; n < swpfile.getNumGates(); n++) {
-			if (data[n] > minvel) {
-				// Calculate the interest map
-				data[n] = calcVelStdInterestMap(data[n]);
+		if ((left_index < 0) or (right_index < 0)) { continue; }
+		for (int i=0; i < numrays; i++)  {
+	        float az = swpfile.getAzimuth(i)*0.017453292;
+			float elev = (swpfile.getElevation(i))*0.017453292;
+			float tan_elev = tan(elev);
+			float radarAlt = swpfile.getRadarAlt(i)*1000;
+			float azground, elevground;
+			if (az > 3.14159) {
+				azground = swpfile.getAzimuth(left_index)*0.017453292;
+				elevground = (swpfile.getElevation(left_index))*0.017453292;
+			} else {
+				azground = swpfile.getAzimuth(right_index)*0.017453292;
+				elevground = (swpfile.getElevation(right_index))*0.017453292;
 			}
-			else data[n] = 0.0;
+			float azoffset = az - azground;
+			float eloffset = elev - elevground;
+			ground_intersect = (-(radarAlt)/sin(elev))*(1.+radarAlt/(2.*earth_radius*tan_elev*tan_elev));
+			if(ground_intersect >= max_range*2.5 || ground_intersect <= 0 ) {
+				continue;
+			}
+		
+			// Calculate prob based on Flat-panel beam shape
+	        double absLat, absLon, h;
+            if (demFlag) {
+                double range = gates[g];
+                double relX = range*sin(az)*cos(elev);
+                double relY = range*cos(az)*cos(elev);
+		        float radarLat = swpfile.getRadarLat(i);
+				float radarLon = swpfile.getRadarLon(i);
+		        double radarX, radarY;
+				tm.Forward(radarLon, radarLat, radarLon, radarX, radarY);				
+                tm.Reverse(radarLon, radarX + relX, radarY + relY, absLat, absLon);
+                h = asterDEM.getElevation(absLat, absLon);
+                //if (g == 0) { std::cout << absLat << "\t" << absLon << "\t" << h << "\n"; }
+                double agl = radarAlt - h;
+                ground_intersect = (-(agl)/sin(elev))*(1.+agl/(2.*earth_radius*tan_elev*tan_elev));
+            }
+            float grange = ground_intersect-gates[g];
+			if (grange <= 0) {
+				if (field[i][g] != -32768.) field[i][g]	= 1.;
+			} else {
+				// Alternate exponential formula
+				//float gprob = exp(-grange/(ground_intersect*0.33));
+				float beamaxis = sqrt(azoffset*azoffset + eloffset*eloffset);
+				float beamwidth = eff_beamwidth*0.017453292;
+				float gprob = 0.0;
+				if (beamaxis > 0) {
+					gprob = exp(-0.69314718055995*beamaxis/beamwidth);
+				    //gprob = fabs(sin(27*sin(beamaxis))/(27*sin(beamaxis)));
+			    } else {
+					gprob = 1.0;
+				}
+				if (gprob > 1.0) gprob = 1.0;
+				if (field[i][g] != -32768.) field[i][g]	= gprob;
+				//printf("Ground (%f) %f / %f\n",elev,grange,footprint);
+			}
+			
 		}
-	}
+	}		
+	
 }
 
-/****************************************************************************************
-** mapNCP : This subroutine maps the NCP field.
-****************************************************************************************/
-void AirborneRadarQC::mapNCP(const QString& fldname)  
-{	
-	QString oldFieldName = "NCP";
-	QString newFieldName = fldname;
-	QString newFieldDesc = "NCP Map";
-	QString newFieldUnits = "";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
-		printf("Error creating new field!!!\n");
-		return;
-	}
+void AirborneRadarQC::histogram(const QString& fldname, double min, double max, double interval) {
 	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
+    QFile verifyFile;
+	QTextStream vout(&verifyFile);
+	QString fileName = fldname + "_histogram.txt";
+	verifyFile.setFileName(fileName);
+	verifyFile.open(QIODevice::Append | QIODevice::WriteOnly);
+	if ((max == -999999) and (min = -999999)) {
+		for (int i=0; i < swpfile.getNumRays(); i++)  {
+			float* data = swpfile.getRayData(i, fldname);
+			for (int n=0; n < swpfile.getNumGates(); n++) {
+	            if (data[n] != -32768.) {
+	                if (data[n] > max) max = data[n];
+	                if (data[n] < min) min = data[n];
+	            }
+	        }
+	    }
+	    interval = (max - min)/100.;
+	}
+	int bins = int((max - min)/interval + 1);
+    float good[bins], bad[bins];
+    for (int i=0; i<bins; i++) {
+        good[i] = 0;
+        bad[i] = 0;
+    }
+    for (int i=0; i < swpfile.getNumRays(); i++)  {
+		float* data = swpfile.getRayData(i, fldname);
+        float* test = swpfile.getRayData(i, "VG");
 		for (int n=0; n < swpfile.getNumGates(); n++) {
-			// Calculate the interest map
-			if (data[n] != -32768) 
-				data[n] = calcNCPInterestMap(data[n]);
+            if (data[n] != -32768.) {
+                int index = int((data[n] - min)/interval);
+				if (index < 0) { index = 0; }
+				if (index > (bins-1)) { index = bins-1; }
+                if (test[n] == -32768.) {
+                    bad[index]++;
+                } else {
+                    good[index]++;
+                }
+            }
 		}
 	}
-}
-
-/****************************************************************************************
-** mapRefLaplacian : This subroutine maps the reflectivity Laplacian field.
-****************************************************************************************/
-void AirborneRadarQC::mapRefLaplacian(const QString& fldname) {
-	QString oldFieldName = "DBZL";
-	QString newFieldName = fldname;
-	QString newFieldDesc = "Reflectivity Laplacian Map";
-	QString newFieldUnits = "";
-	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
-		printf("Error creating new field!!!\n");
-		return;
-	}
-	
-	for (int i=0; i < swpfile.getNumRays(); i++)  {
-		float* data = swpfile.getRayData(i, newFieldName);
-		for (int n=0; n < swpfile.getNumGates(); n++) {
-			// Calculate the interest map
-			data[n] = calcRefLaplacianInterestMap(data[n]);
-		}
-	}
+    for (int i=0; i<bins; i++) {
+        vout << fldname << "\t" << interval*i+min << "\t" << good[i] << "\t" << bad[i] << "\n";
+    }
+    verifyFile.close();
 }
 
 /****************************************************************************************
@@ -3161,43 +3481,26 @@ int AirborneRadarQC::getRayIndex(int ri, int nrays)  {
 ** Some are based on maps derived by Kessinger et al. (2003)
 ** Graphical versions of the maps can be found in /Users/cwolff/Documents/NCAR/eldora/interestmaps.xls
 ****************************************************************************************/
-float AirborneRadarQC::calcRefTextInterestMap(float texture) {
-	if ((texture >= 0.0) && (texture <= 2.5))
-		return ((1.0/2.5) * texture);
-	else if ((texture > 2.5) && (texture <= 30.0))
-		return (1.0-((texture-2.5)/27.5));
-	else
-		return 0.0;
-}
-
-float AirborneRadarQC::calcRefSpinInterestMap(float spin) {
-	if (spin < 0.0)
+float AirborneRadarQC::mapGradient(const float& value) {
+	if (value < 0.0)
 		return 1.0;
-	else if (spin > 10.0)
+	else if (value > 10.0)
 		return 0.0;
 	else
-		return (1.0-(spin/10.0));
+		//return (1.0-(value/10.0));
+		return ((10.0 - value)/9.0)*((10.0 - value)/9.0);
 }
 
-float AirborneRadarQC::calcVelStdInterestMap(float std) {
-	if ((std >= 0.0) && (std <= 0.15))
-		return ((1.0/0.15) * std);
-	else if ((std > 0.15) && (std <= 3.0))
-		return (1.0-((std-0.15)/2.85));
-	else
-		return 0.0;
-}
-
-float AirborneRadarQC::calcMeanRefInterestMap(float ref) {
-	if (ref <= -10.0)
-		return 0.0;
-	else if (ref >= 0.0)
+float AirborneRadarQC::mapStdDev(const float& std) {
+	if (std < 0.0)
 		return 1.0;
+	else if (std > 5.0)
+		return 0.0;
 	else
-		return ((ref+10.0)/10.0);
+		return (1.0-(std/5.0));
 }
 
-float AirborneRadarQC::calcNCPInterestMap(float ncp) {
+float AirborneRadarQC::mapNCP(const float& ncp) {
 	if (ncp < 0.2)
 		return 0.0;
 	else if (ncp > 0.4)
@@ -3206,11 +3509,138 @@ float AirborneRadarQC::calcNCPInterestMap(float ncp) {
 		return ((ncp-0.2)/0.2);
 }
 
-float AirborneRadarQC::calcRefLaplacianInterestMap(float lap) {
-	if ((lap < -20.0) || (lap > 20.0))
-		return 0.0;
-	else if ((lap > -5.0) && (lap < 5.0))
+float AirborneRadarQC::mapLaplacian(const float& lap) {
+	float abslap = fabs(lap); 
+	if (abslap < 1.0)
 		return 1.0;
+	else if (abslap > 8.0)
+		return 0.0;
 	else
-		return (1.0 - ((fabs(lap)-5.0)/15.0));
+		return (1.0 - (abslap-1.0)/8.0);
 }
+
+float AirborneRadarQC::mapMixedPartial(const float& mp) {
+	if (fabs(mp) > 1.0)
+		return 0.0;
+	else
+		return 1.0;
+}
+
+float AirborneRadarQC::mapSWZ(const float& swz) {
+	if (swz < 0.2)
+		return 1.0;
+	else if (swz > 0.6)
+		return 0.0;
+	else
+		return 1.0-((swz-0.2)/0.2); //Exponential?
+}
+
+void AirborneRadarQC::wxProbability(const QString& oriFieldName, const QString& probFieldName, float* weight){
+	QString oldFieldName = oriFieldName;
+	QString newFieldName = probFieldName;
+	QString newFieldDesc = "Probability of Wx";
+	QString newFieldUnits = "";
+	if(!newField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits)) {
+		printf("Error creating new field!!!\n");
+		return;
+	}
+	std::cout << "wxProbability weights: " << weight[0] << "\t" << weight[1] <<  "\t" << weight[2] <<
+		 "\t" << weight[3] << "\t" << weight[4] <<  "\t" <<weight[5] <<  "\t" << weight[6] << "\n";
+	
+	int rays = swpfile.getNumRays();
+	int gates = swpfile.getNumGates();
+	// Allocate memory for the interest fields
+	float** vg = new float*[rays];
+	float** gradient = new float*[rays];
+	float** laplacian = new float*[rays];
+	float** mixedpartial = new float*[rays];
+	float** ncp = new float*[rays];
+	float** stddev = new float*[rays];
+	float** ground = new float*[rays];
+	float** swz = new float*[rays];
+	for (int i=0; i < rays; i++)  {
+		vg[i] = new float[gates];
+		gradient[i] = new float[gates];
+		laplacian[i] = new float[gates];
+		mixedpartial[i] = new float[gates];
+		ncp[i] = new float[gates];
+		stddev[i] = new float[gates];
+		ground[i] = new float[gates];
+		swz[i] = new float[gates];
+	}
+	
+	this->swpField2array(oriFieldName, vg);
+	
+	this->calcGradientMagnitude(vg,gradient,4);
+	this->array2swpField(gradient, "VV", "VGR");
+	
+	this->calcLaplacian(vg, laplacian);
+	this->array2swpField(laplacian, "VV", "VLP");
+	
+	this->calcMixedPartial(vg, mixedpartial);
+	this->array2swpField(mixedpartial, "VV", "VMP");
+	
+	this->swpField2array("NCP", ncp);
+	
+	this->calcStdDev(vg,stddev);
+	this->array2swpField(stddev, "VV", "VSD");
+	
+	float beamwidth = 1.8;
+	this->probGroundGates(ground,beamwidth);
+	this->array2swpField(ground, "VV", "GG");
+	
+	this->calcRatio("SW", "ZZ", "SWZ", true);
+	this->swpField2array("SWZ", swz);
+	
+	// Map to probability fields
+	for (int i=0; i < rays; i++)  {
+		float* orifield = swpfile.getRayData(i, oriFieldName);
+		for (int n=0; n < gates; n++) {
+			if (orifield[n] != -32768.) {
+				gradient[i][n] = mapGradient(gradient[i][n]);
+				laplacian[i][n] = mapLaplacian(ncp[i][n]);
+				mixedpartial[i][n] = mapMixedPartial(ncp[i][n]);
+				ncp[i][n] = mapNCP(ncp[i][n]);
+				stddev[i][n] = mapStdDev(ncp[i][n]);
+				ground[i][n] = 1.0 - ground[i][n];
+				swz[i][n] = mapSWZ(swz[i][n]);
+			}
+		}
+	}
+	float weightsum = 0;
+	for (int i=0; i<7; i++) weightsum += weight[i];
+	
+	// Combine interest maps with weights
+	for (int i=0; i < rays; i++)  {
+		float* wxprob = swpfile.getRayData(i, probFieldName);
+		for (int n=0; n < gates; n++) {
+			if (wxprob[n] != -32768.) {
+				wxprob[n] = (weight[0]*gradient[i][n] + weight[1]*laplacian[i][n]
+					+ weight[2]*mixedpartial[i][n] + weight[3]*ncp[i][n]
+						+weight[4]*stddev[i][n] + weight[5]*ground[i][n]
+							+weight[6]*swz[i][n])/weightsum;
+			}
+		}
+	}
+	
+	for (int i=0; i < rays; i++)  {
+		delete[] vg[i];
+		delete[] gradient[i];
+		delete[] laplacian[i];
+		delete[] mixedpartial[i];
+		delete[] ncp[i];
+		delete[] stddev[i];
+		delete[] ground[i];
+		delete[] swz[i];
+	}
+	delete[] vg;
+	delete[] gradient;
+	delete[] laplacian;
+	delete[] mixedpartial;
+	delete[] ncp;
+	delete[] stddev;
+	delete[] ground;
+	delete[] swz;
+	
+}
+

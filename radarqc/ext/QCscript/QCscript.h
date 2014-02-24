@@ -10,6 +10,7 @@
 #define QCSCRIPT_H
 
 #include "AirborneRadarQC.h"
+#include "rice/Array.hpp"
 
 class QCscript : public AirborneRadarQC
 {
@@ -28,7 +29,7 @@ public:
      void rb_thresholdData(const std::string& threshfield, const std::string& fldname,
                            float threshold, const std::string& direction = "below");
      void rb_probGroundGates(const std::string& oriFieldName, const std::string& newFieldName,
-			     float eff_beamwidth);
+			     float eff_beamwidth, const std::string& demFilename);
      void rb_despeckleRadial(const std::string& fieldName, int speckle);
      void rb_despeckleAzimuthal(const std::string& fieldName, int speckle);
      void rb_copyEdits(const std::string& oriFieldName, const std::string& newFieldName);
@@ -36,8 +37,11 @@ public:
                        const std::string& newFieldName, bool zflag);
      void rb_setNavigationCorrections(const std::string& cfacFileName, const std::string& radarName);
      void rb_removeAircraftMotion(const std::string& vrFieldName, const std::string& vgFieldName);
+	 void rb_wxProbability(const std::string& vgFieldName, const std::string& wxFieldName, const Rice::Array weight);
 
 private:
+
+	float* c_weight;
 
 };
 

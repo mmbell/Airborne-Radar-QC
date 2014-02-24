@@ -17,7 +17,7 @@ qc.getFileListSize.times { |file|
            applyNavigationCorrections :to => "TF-ELDR", :using => tf_cfac
 	   removeAircraftMotion :from => "VR", :to => "VG"
            threshold :field => "VG", :on => "NCP", :below => "0.3"
-	   flagSurfaceGates :with_beamwidth => "2.0", :in => "GG"   
+	   flagSurfaceGates :with_beamwidth => "2.0", :in => "GG" #:using => 'ASTGTM2_N46E008_dem.tif'
 	   threshold :field => "VG", :on => "GG", :above => "0.7"
            calcRatio :of => "SW", :over => "ZZ", :in => "SWZ", :using => "linear_z"
 	   threshold :field => "VG", :on => "SWZ", :above => "0.6"

@@ -11,5 +11,6 @@ HEADERS += AirborneRadarQC.h \
            RecursiveFilter.h
 SOURCES += AirborneRadarQC.cpp \
 	   Dorade.cpp \
-	   RecursiveFilter.cpp \
+	   RecursiveFilter.cpp
+LIBS += -lgeotiff -ltiff -lgeographic
 

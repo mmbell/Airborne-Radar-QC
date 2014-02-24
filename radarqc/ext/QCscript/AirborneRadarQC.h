@@ -34,6 +34,7 @@ public:
 	bool setInputPath(const QString& in);
 	QString getOutputPath();
 	bool setOutputPath(const QString& out);
+	void writeToCSV();
 	
 	// QC
 	bool processSweeps();
@@ -48,6 +49,8 @@ public:
 	void GaussianSmooth(const QString& oriFieldName, const QString& newFieldName, const int& scale);
 	void GaussianSmooth(const QString& oriFieldName, float** field, const int& scale);
 	void swpField2array(const QString& oriFieldName, float** field);
+	void array2swpField(float** field, const QString& oriFieldName);
+	void array2swpField(float** field, const QString& oriFieldName, const QString& newFieldName);
 	void copyEdits(const QString& oriFieldName,const QString& newFieldName);
 	
 	// REC Fields
@@ -55,6 +58,9 @@ public:
 	void calcSpinSteiner(const QString& oriFieldName, const QString& fldname);
 	void calcSpinKessinger(const QString& oriFieldName, const QString& fldname);
 	void calcStdDev(const QString& oldFieldName, const QString& fldname);
+	void calcStdDev(const QString& oldFieldName, float** field);
+	void calcStdDev(float** orifield, float** field);
+	
 	void calcMeanRef(const QString& fldname);
 	void calcSpatialMean(const QString& oriFieldName, const QString& newFieldName, const int& gateWindow, const int& rayWindow);
 	void calcTemporalMean(const QString& oriFieldName, const QString& newFieldName);
@@ -96,15 +102,18 @@ public:
 	void flagGroundGates(const QString& fldname, const float& eff_beamwidth);
 	
 	// Probabilities
-	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth);
+	void probGroundGates(const QString& oriFieldName, const QString& newFieldName, const float& eff_beamwidth,
+                         const QString& demFileName = 0);
+	void probGroundGates(float** field, const float& eff_beamwidth, const QString& demFileName = 0);					 
 	void calcWeatherProb(const QString& mdbzt_name, const QString& mdbzs_name, const QString& mdbzl_name, const QString& mvgs_name, const QString& mncp_name);
+	void wxProbability(const QString& oriFieldName, const QString& probFieldName, float* weight);
 	void wxProbability2();
-	void mapRefTexture(const QString& fldname);
-	void mapMeanRef(const QString& fldname);
-	void mapRefSpin(const QString& fldname);
-	void mapVelStd(const QString& fldname);
-	void mapNCP(const QString& fldname);
-	void mapRefLaplacian(const QString& fldname);
+	float mapGradient(const float& value);
+	float mapStdDev(const float& std);
+	float mapNCP(const float& ncp);
+	float mapLaplacian(const float& lap);
+	float mapMixedPartial(const float& mp);
+	float mapSWZ(const float& swz);
 
 	// Other
 	void compareForeAftRef();
@@ -120,7 +129,7 @@ public:
 	void verify();
 	void soloiiScriptROC();
 	void soloiiScriptVerification();
-	
+	void histogram(const QString& fldname, double min = 999999.0, double max = -999999.0, double interval = 0.0);
 private:
 	QList<QString> swpfileList;
 	QDir dataPath;
