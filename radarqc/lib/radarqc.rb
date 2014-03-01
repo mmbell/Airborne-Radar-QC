@@ -115,6 +115,11 @@ class RadarQC < QCscript
      super(args[:from], args[:to])
   end
 
+  # Syntax: newField :from => 'VG', :to => 'DBZ'
+  def newField(args)
+     super(args[:from], args[:to])
+  end
+
   # Syntax: wxProbability :of => "VG", in => "WXP", :gradient => 1.0, :laplacian => 1.0, :mixedpartial => 1.0,
   # :ncp => 1.0, :stddev => 1.0, :ground => 1.0, :swz => 1.0
   def wxProbability(args) 
