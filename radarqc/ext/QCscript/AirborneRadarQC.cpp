@@ -84,6 +84,9 @@ bool AirborneRadarQC::processSweeps()
 			// Use these to apply navigation corrections
 			setNavigationCorrections("rf12.cfac.aft", "TA-ELDR");
 			setNavigationCorrections("rf12.cfac.fore", "TF-ELDR");
+
+			// Make a backup of the original dBZ
+			copyField("DBZ", "ZZ");
 			
 			removeAircraftMotion("VR", "VG");
 			
@@ -138,7 +141,7 @@ bool AirborneRadarQC::processSweeps()
 			 soloiiScriptROC(); */
 			
 	 		// Copy edits to reflectivity
-	 		copyEdits("VG","DBZ");
+			copyEdits("VG","DBZ");
 			
 			// Write it back out
 		    saveQCedSwp(f);
@@ -268,6 +271,14 @@ bool AirborneRadarQC::newField(const QString& oldFieldName,const QString& newFie
 	return swpfile.copyField(oldFieldName, newFieldName, newFieldDesc, newFieldUnits);
 	
 }
+
+bool AirborneRadarQC::copyField(const QString& oldFieldName,const QString& newFieldName)
+{
+	
+	return swpfile.copyField(oldFieldName, newFieldName);
+	
+}
+
 
 /****************************************************************************************
  ** thresholdData : Threshold a field on another field above or below the given value
@@ -2473,7 +2484,7 @@ void AirborneRadarQC::removeAircraftMotion(const QString& vrFieldName, const QSt
 	// Aircraft Doppler velocity calculated following Lee et al. (1994)
 	QString newFieldDesc = "Ground relative velocity";
 	QString newFieldUnits = "m/s";
-	if(!newField(vrFieldName, vgFieldName, newFieldDesc, newFieldUnits)) {
+	if(!copyField(vrFieldName, vgFieldName)) {
 		printf("Error creating new field!!!\n");
 		return;
 	}

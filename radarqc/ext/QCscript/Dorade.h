@@ -65,9 +65,10 @@ public:
 	
 	// Editing
 	void recalculateAirborneAngles();
-
+	bool copyField(const QString& oldFieldName,const QString& newFieldName);
 	bool copyField(const QString& oldFieldName,const QString& newFieldName, 
 				   const QString& newFieldDesc,const QString& newFieldUnits);
+				   
 	//bool deleteField(const QString& fldname);
 	
 private:

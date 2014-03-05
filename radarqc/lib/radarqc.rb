@@ -116,7 +116,7 @@ class RadarQC < QCscript
   end
 
   # Syntax: newField :from => 'VG', :to => 'DBZ'
-  def newField(args)
+  def copyField(args)
      super(args[:from], args[:to])
   end
 

@@ -469,6 +469,64 @@ bool Dorade::copyField(const QString& oldFieldName, const QString& newFieldName,
 	return true;
 }
 
+bool Dorade::copyField(const QString& oldFieldName, const QString& newFieldName) 
+{
+
+	// Copy a field over and rename it
+	int oldIndex = -1;
+	int newIndex = rptr->num_param_desc;
+	bool existing = false;
+	
+	for (int j=0; j<(rptr->num_param_desc); j++) {
+		QString fieldName = pptr[j].parm_name;
+		if (fieldName.size() > 8) fieldName.resize(8);
+		fieldName.remove(QRegExp("[\\s+]"));
+		if (newFieldName == fieldName) {
+			// Match existing field
+			existing = true;
+			newIndex = j;
+		}		
+		if (oldFieldName == fieldName) {
+			// Match
+			oldIndex = j;
+		}
+	}
+	if ((oldIndex < 0) or (oldIndex > rptr->num_param_desc)) {
+		// No match
+		return false;
+	}
+
+	if (!existing) {
+		// Increment rptr & sswb
+		rptr->num_param_desc++;
+		ssptr->num_params++;
+	
+		// Copy parm info, rename it
+		pptr[newIndex] = pptr[oldIndex];
+		memset(pptr[newIndex].parm_name,' ',8);
+		for (int c=0; c < 8; c++) {
+			if (c < newFieldName.size()) {
+				QByteArray ba = newFieldName.toLocal8Bit();
+				pptr[newIndex].parm_name[c] = ba.at(c);
+			}
+		}
+	}
+	// Copy the RDAT blocks
+	for (int i=0; i<(sptr->num_rays); i++) {
+		dptr[newIndex][i] = dptr[oldIndex][i];
+		memset(dptr[newIndex][i].parm_name,' ',8);
+		for (int c=0; c < 8; c++) {
+			if (c < newFieldName.size()) {
+				QByteArray ba = newFieldName.toLocal8Bit();
+				dptr[newIndex][i].parm_name[c] = ba.at(c);
+			}
+		}
+	}
+	
+	return true;
+}
+
+
 /* Private routines */
 /**************************************************/
 bool Dorade::machineBigEndian(){

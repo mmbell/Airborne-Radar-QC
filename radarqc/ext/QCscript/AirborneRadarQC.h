@@ -40,6 +40,8 @@ public:
 	bool processSweeps();
 	bool newField(const QString& oldFieldName,const QString& newFieldName, 
 				  const QString& newFieldDesc,const QString& newFieldUnits);
+	bool copyField(const QString& oldFieldName,const QString& newFieldName); 
+				  
 	bool copyAuxField(const QString& oldFieldName,const QString& newFieldName, 
 					  const QString& newFieldDesc,const QString& newFieldUnits);
 	void thresholdData(const QString& threshfield, const QString& fldname, 

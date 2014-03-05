@@ -37,6 +37,7 @@ public:
                        const std::string& newFieldName, bool zflag);
      void rb_setNavigationCorrections(const std::string& cfacFileName, const std::string& radarName);
      void rb_removeAircraftMotion(const std::string& vrFieldName, const std::string& vgFieldName);
+     void rb_copyField(const std::string& oriFieldName, const std::string& newFieldName);
 	 void rb_wxProbability(const std::string& vgFieldName, const std::string& wxFieldName, const Rice::Array weight);
 
 private:

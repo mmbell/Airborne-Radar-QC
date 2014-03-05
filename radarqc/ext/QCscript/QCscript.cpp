@@ -42,6 +42,7 @@ void Init_QCscript(void)
       .define_method("despeckleRadial", &QCscript::rb_despeckleRadial)
       .define_method("despeckleAzimuthal", &QCscript::rb_despeckleAzimuthal)
       .define_method("copyEdits", &QCscript::rb_copyEdits)
+      .define_method("copyField", &QCscript::rb_copyField)
 	  .define_method("wxProbability", &QCscript::rb_wxProbability);
   }
   RUBY_CATCH
@@ -150,6 +151,13 @@ void QCscript::rb_removeAircraftMotion(const std::string& vrFieldName, const std
         QString vr = QString::fromStdString(vrFieldName);
 		QString vg = QString::fromStdString(vgFieldName);
 		removeAircraftMotion(vr,vg);
+}
+
+void QCscript::rb_copyField(const std::string& oriFieldName, const std::string& newFieldName)
+{
+        QString ori = QString::fromStdString(oriFieldName);
+        QString fld = QString::fromStdString(newFieldName);
+        copyField(ori,fld);
 }
 
 void QCscript::rb_wxProbability(const std::string& vgFieldName, const std::string& wxFieldName, const Rice::Array weight)
