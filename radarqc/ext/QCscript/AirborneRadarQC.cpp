@@ -175,7 +175,11 @@ bool AirborneRadarQC::readSwpDir()
 	// Read in the list sweepfiles
 	for (int i = 0; i < filenames.size(); ++i) {
 		QStringList fileparts = filenames.at(i).split(".");
-		if (fileparts.size() == 6) swpfileList.append(filenames.at(i));
+		if (fileparts.size() == 6) {
+			swpfileList.append(filenames.at(i));
+		} else {
+			std::cout << "Ignoring previously modified file " << filenames.at(i).toStdString() << "\n";
+		}
 	}
 	
 	if (swpfileList.isEmpty()) { 
