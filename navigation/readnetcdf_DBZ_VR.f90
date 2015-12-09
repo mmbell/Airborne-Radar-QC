@@ -111,7 +111,7 @@
     CHARACTER(len=64) time_coverage_start,time_coverage_end 
 
 ! Variables for input file list
-    CHARACTER(len=80) filename,outfilename , argu
+    CHARACTER(len=100) filename,outfilename , argu
     INTEGER  nfile     ! number of netcdf files
 
 !   Initialization
@@ -534,6 +534,9 @@
 
         DO I=1, NTIMES
 !        PRINT *, I, ' vertical_wind is ', vertical_wind(I)
+         IF(abs(vertical_wind(I)).gt.100.0) THEN
+            vertical_wind(I) = -999.0
+         ENDIF
         END DO
 
 !
