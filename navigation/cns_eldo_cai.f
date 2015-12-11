@@ -8,10 +8,10 @@ c****    D_VH_acft
 c****
 c**** FROM COMPARISONS BETWEEN:
 c****
-c****    - RADAR-DERIVED SURFACE AND DIGITAL TERRAIN MAP 
+c****    - RADAR-DERIVED SURFACE AND DIGITAL TERRAIN MAP
 c****     (or CONSTANT GROUND LEVEL);
 c****    - DOPPLER VELOCITY AT SURFACE LEVEL AND ZERO;
-c****    - DOPPLER  VELOCITY AT LOW-ELEVATION CLOSE TO THE AIRCRAFT 
+c****    - DOPPLER  VELOCITY AT LOW-ELEVATION CLOSE TO THE AIRCRAFT
 c****      AND THE PROJECTION OF THE FLIGHT-LEVEL (IN SITU) WIND;
 c****
 c**** DIFFERENT OPTIONS ARE AVAILABLE (see DATA_cns FILE)
@@ -124,13 +124,13 @@ c Variable for reading text files
         INTEGER  nfile,ifile,lastfile     ! total number of netcdf text file & file number
         INTEGER iopen
 
-c Variables declarations previous in Franks' common block, which has been deleted  
+c Variables declarations previous in Franks' common block, which has been deleted
 
 c From COMMON /CSPD_OU_CELV/
       integer*4 nb_portes
       real d_porte(MAXPORAD)
 
-c From COMMON /CFAC/ 
+c From COMMON /CFAC/
 c
       real corr_azest(MAXRAD),corr_elhor(MAXRAD),corr_dist(MAXRAD)
      &    ,corr_lon(MAXRAD),corr_lat(MAXRAD)
@@ -141,7 +141,7 @@ c
      &    ,corr_tang(MAXRAD),corr_derv(MAXRAD)
      &    ,corr_rota(MAXRAD),corr_incl(MAXRAD)
 
-c From COMMON /RYIB/ 
+c From COMMON /RYIB/
 c
       integer*2 ih_rdl,im_rdl,is_rdl,ims_rdl
       integer*4 num_swp,j_julien,etat_rdl,no_rdl
@@ -173,12 +173,12 @@ c
      &       ,dzsurfsweep_rms(2)
      &       ,swvsurf_sweep(2),vsurfsweep_mean(2),vsurfsweep_rms(2)
      &       ,swinsitu_sweep(2),dvinsitusweep_mean(2)
-     &       ,dvinsitusweep_rms(2) 
+     &       ,dvinsitusweep_rms(2)
      &       ,var(nvar),xmat(nvar,nvar),vect(nvar)
      &       ,xinv(nvar,nvar),res(nvar)
      &       ,vect_dzsurf(nvar),xmat_dzsurf(nvar,nvar)
      &       ,vect_vsurf(nvar),xmat_vsurf(nvar,nvar)
-     &       ,vect_dvinsitu(nvar),xmat_dvinsitu(nvar,nvar)          
+     &       ,vect_dvinsitu(nvar),xmat_dvinsitu(nvar,nvar)
      &       ,alt_dtm(nxysurfmax,nxysurfmax)
      &       ,swdzsurf_wri(nxysurfmax,nxysurfmax)
      &       ,sw_or_altsurf_wri(nxysurfmax,nxysurfmax)
@@ -198,13 +198,13 @@ c
 c
       integer*4 nb_ray(2),nb_sweep(2)
      &         ,n_dzsurf(2),n_vsurf(2),n_dvinsitu(2)
-     &         ,nsurf_wri(2) 
+     &         ,nsurf_wri(2)
      &         ,ndismiss_vhacft(2),ndismiss_vdopcorr(2)
      &         ,ndismiss_vdopsurf(2)
      &         ,swp(2),swp_prev(2)
      &         ,ndop_ok(2),nref_ok(2)
      &         ,istart_sweep(2)
-     &         ,itab(nxysurfmax),ihms_dtm(6),ialtsurf_wri(nxysurfmax)   
+     &         ,itab(nxysurfmax),ihms_dtm(6),ialtsurf_wri(nxysurfmax)
 c
       character path_abs*18,directory*60,dir_read*60
      &         ,fich_sis*30
@@ -245,12 +245,12 @@ c
       deg_lon0=111.32
       deg_lat=111.13
       conv=3.14159/180.
-      rayter=6370.  
+      rayter=6370.
       xncp_min=0.25
       sw_max=5.
       vdop_max=200.
       selh_surf=-0.15
-      zacftmin_surf=1.5      
+      zacftmin_surf=1.5
       igstart_surf=5
       refsurf_min0=20.
       gradrefsurf_min0=50.
@@ -293,7 +293,7 @@ c CAI-START: No tape driver, change to number of text files
       enddo
       ndirr=ndirr-1
       print *,' DIRECTORY FOR READ FILES :',dir_read(1:ndirr)
-      
+
       print *,' '
       read(99,*)nfile
       print *,' Total Number of Sweep Files :',nfile
@@ -430,7 +430,7 @@ c
         ymax_wrisurf=+xywidth_wrisurf/2.
         print *,' -> Xmin,max_wrisurf:',xmin_wrisurf,xmax_wrisurf
         print *,'    Ymin,max_wrisurf:',ymin_wrisurf,ymax_wrisurf
-        print *,'    Hx,y_wrisurf:',hxy_wrisurf        
+        print *,'    Hx,y_wrisurf:',hxy_wrisurf
         nx_wrisurf=((xmax_wrisurf-xmin_wrisurf)/hxy_wrisurf+1.)
         ny_wrisurf=((ymax_wrisurf-ymin_wrisurf)/hxy_wrisurf+1.)
         print *,'    Nx,Ny_wrisurf:',nx_wrisurf,ny_wrisurf
@@ -439,7 +439,7 @@ c
      &           ,' > NxySURFmax !!!!'
 	  print *,' !!!! MODIFY l.30 AND RECOMPILE THE PROGRAM !!!!'
           go to 3
-        endif       
+        endif
 c
 c**** OPEN "SURF_EL_*" FILE #30 FOR WRITING (if IWRISURFILE=1)
 c
@@ -461,7 +461,7 @@ c
      &               ,ixmin_wrisurf,iymin_wrisurf,0
      &               ,nx_wrisurf,ny_wrisurf,1
      &               ,ihxy_wrisurf,ihxy_wrisurf,0
-c 
+c
       else
         print *,' NO "SURF_EL_*" FILE WILL BE WRITTEN'
       endif
@@ -622,7 +622,7 @@ c
      &       directory(1:ndir)//'/'//dtm_file(1:ndtmfile)
       else
         write(10,"( ' NO SURF_DTM_* FILE TO READ '
-     &             ,'-> ALT_SURF(x,y)=CST (',f6.3,')')") 
+     &             ,'-> ALT_SURF(x,y)=CST (',f6.3,')')")
      &       zsurf_cst
       endif
       if(iwrisurfile.eq.1)then
@@ -651,7 +651,7 @@ c
       ihms_prev=-999
       do iradar=1,2
          istart_sweep(iradar)=0
-         rota_prev(iradar)=-999.      
+         rota_prev(iradar)=-999.
          nb_ray(iradar)=0
          stilt(iradar)=0.
          stilt2(iradar)=0.
@@ -681,7 +681,7 @@ c
          ndismiss_vdopsurf(iradar)=0
          swdzsurf_sweep(iradar)=0.
          dzsurfsweep_mean(iradar)=0.
-         dzsurfsweep_rms(iradar)=0.                
+         dzsurfsweep_rms(iradar)=0.
          swvsurf_sweep(iradar)=0.
          vsurfsweep_mean(iradar)=0.
          vsurfsweep_rms(iradar)=0.
@@ -698,8 +698,8 @@ c
 	    xv_vpv(iradar,jgd)=0.
 	    xvv_vpv(iradar,jgd)=0.
 	 enddo
-      enddo     
-      ssurfins=0.	! Olivier (réel)
+      enddo
+      ssurfins=0.	! Olivier (rï¿½el)
       swdzsurf_tot=0.
       swdzmsurf_tot=0.
       swdz2surf_tot=0.
@@ -783,7 +783,7 @@ c
       if(no_lect.eq.999)go to 3
 c
 c******************************************************************
-c*** READ THE ELDORA DATA FROM TEXT FILES CREATED BY ANOTHER PROGRAM 
+c*** READ THE ELDORA DATA FROM TEXT FILES CREATED BY ANOTHER PROGRAM
 c******************************************************************
 c
       print *,' '
@@ -803,7 +803,7 @@ c******************************************************************
   1   if(iopen .eq. 0) then
 
         write(infilename,'(i10)') ifile
-        infilename = dir_read(1:ndirr) // '/' 
+        infilename = dir_read(1:ndirr) // '/'
      &  // TRIM(ADJUSTL(infilename)) // '.txt'
         open(55,file=infilename, status='old')
         iopen = 1
@@ -838,8 +838,8 @@ c When end of file reached
   5     iopen = 0
         close(55)
         if(ifile .eq. nfile) then
-           lastfile=1 
-           goto 7 
+           lastfile=1
+           goto 7
         else
            ifile = ifile +1
            goto 1
@@ -865,7 +865,7 @@ c adjusting hh,mm,ss for passing 60 mark, assign to Frank's ray time variables
 
 c Assign the aircraft position/angles to Frank's variables
         azest_rdl = azimuth
-        elhor_rdl = elevation 
+        elhor_rdl = elevation
         lat_av = latitude
         lon_av = longitude
         p_alt_av = altitude
@@ -896,13 +896,13 @@ c  The aft/fore radar are different
            enddo
         endif
 c Assign the swp number read from text file to num_swp
-       num_swp = nsweep 
+       num_swp = nsweep
 
 c Assign the correction factors to Frank's variable
 c NOTE: Here the correction factors are arrays with two elements
 c This is different from any other variables
 
-        if (tilt .lt. 0) then   ! AFT, iradar_ray=1,iaftfore= -1 
+        if (tilt .lt. 0) then   ! AFT, iradar_ray=1,iaftfore= -1
            corr_azest(1) = azimuth_correction
            corr_elhor(1) = elevation_correction
            corr_dist(1) = range_correction
@@ -942,11 +942,11 @@ c
 
 c TEST reading of text files
 c       print*,'File:',infilename,' Ray:', counter
-c    &      ,' HHMMSS:',ih_rdl,im_rdl,is_rdl,' EL:',elhor_rdl         
+c    &      ,' HHMMSS:',ih_rdl,im_rdl,is_rdl,' EL:',elhor_rdl
 c TEST-END
 
 c******************************************************************
-c**** CONTROL FOR THE END OF THE READING ALL TEXT FILES 
+c**** CONTROL FOR THE END OF THE READING ALL TEXT FILES
 c******************************************************************
 c
   7   iend=0
@@ -1084,8 +1084,8 @@ c!!!!      endif
 c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 c
 c******************************************************************
-c****    END OF A SWEEP ( IEND = 1 )                                 
-c**** or END OF THE TAPE or END OF CONSIDERED PERIOD ( IEND = 2 )    
+c****    END OF A SWEEP ( IEND = 1 )
+c**** or END OF THE TAPE or END OF CONSIDERED PERIOD ( IEND = 2 )
 c******************************************************************
 c
   2   continue
@@ -1231,7 +1231,7 @@ c
  	  print *,' '
 c
 c******************************************************************
-c**** WRITE THE RESULTS FOR THE PAST SWEEP 
+c**** WRITE THE RESULTS FOR THE PAST SWEEP
 c**** ON THE "SIS_EL_*" FILE #50
 c******************************************************************
 c
@@ -1427,7 +1427,7 @@ c
 	  if(ssurfins.gt.ssurfins_min)then
 c
 c******************************************************************
-c**** RMS VALUES OF THE NORMALIZED VARIABLES 
+c**** RMS VALUES OF THE NORMALIZED VARIABLES
 c******************************************************************
 c
 	    print *,' '
@@ -1451,7 +1451,7 @@ c
               print *,'          -------(dVHacft):'
      &               ,sqrt(rms_var_zsurf(12)/swadzsurf_tot)
             else
-              print *,' !!!! DZ_surf -> sWGHTs:',swdzsurf_tot,' !!!!' 
+              print *,' !!!! DZ_surf -> sWGHTs:',swdzsurf_tot,' !!!!'
             endif
 c
             if(swvsurf_tot.gt.1.)then
@@ -1469,7 +1469,7 @@ c
               print *,'          -------(dVHacft):'
      &               ,sqrt(rms_var_vsurf(12)/swavsurf_tot)
             else
-              print *,' !!!! VDOP_surf -> sWGHTs:',swvsurf_tot,' !!!!' 
+              print *,' !!!! VDOP_surf -> sWGHTs:',swvsurf_tot,' !!!!'
             endif
 c
             if(swdvinsitu_tot.gt.1.)then
@@ -1488,7 +1488,7 @@ c
      &               ,sqrt(rms_var_vinsitu(12)/swadvinsitu_tot)
             else
               print *,' !!!! DVDOP_insitu -> sWGHTs:'
-     &               ,swdvinsitu_tot,' !!!!' 
+     &               ,swdvinsitu_tot,' !!!!'
             endif
 c
 c******************************************************************
@@ -1547,7 +1547,7 @@ c
      &                                 ,sqrt( corr_var(i,i)
      &                                       *corr_var(j,j))))
      &                      ,j=1,nvar)
-c 
+c
                  elseif(i.eq.6)then
                    print *,' dH   - '
      &                    ,(int(1000.*corr_var(i,j)
@@ -1611,17 +1611,17 @@ c
             print *,' '
 c
 c******************************************************************
-c**** NORMALIZATION OF THE MATRICES AND VECTORS 
+c**** NORMALIZATION OF THE MATRICES AND VECTORS
 c**** FOR DZ_surf, VDOP_surf et DVDOP_insitu
 c**** BY THE SUM OF THE POSITIVE VALUES OF THE OBSERVED ERRORS
-c**** THEN BUILD A UNIQUE MATRICE AND VECTOR BY SUMMING 
+c**** THEN BUILD A UNIQUE MATRICE AND VECTOR BY SUMMING
 c******************************************************************
 c
             print *,' '
             print *,' NORMALIZATION OF THE MATRICES AND VECTORS'
             print *,' SumPosVal_DZsurf,VDOPsurf,DVDOPinsitu:'
      &             ,swadzsurf_tot,swavsurf_tot,swadvinsitu_tot
-     &   
+     &
             itest_xmat=0
             do i=1,nvar
                vect(i)=0.
@@ -1651,7 +1651,7 @@ c
 c******************************************************************
 c**** CHECK THAT NO ELEMENT OF THE MATRIX' MAIN DIAGONAL IS NULL
 c******************************************************************
-c 
+c
                if(abs(xmat(i,i)).le.0.)then
                  do j=1,nvar
                     xmat(i,j)=0.
@@ -1678,11 +1678,11 @@ c**** INVERSION OF THE MATRIX
 c**** CALCULATION OF THE RESULTING VECTOR
 c******************************************************************
 c
-            if(itest_xmat.eq.1)then            
+            if(itest_xmat.eq.1)then
               call resoud(xmat,xinv,vect,res,nvar)
             else
               print *,' !!!! XMAT=0 !!!!'
-            endif              
+            endif
 c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 c!!!!      print *,' '
 c!!!!      print *,' RESULTING VECTOR'
@@ -1941,16 +1941,16 @@ c Write the aft cafc file
 
          open(11,file=directory(1:ndir)//'/'//'cfac.aft'
      &       ,form='formatted',status='unknown')
- 
+
               write(11,"('azimuth_corr           ='
      &                   ,f8.3)")0.0
- 
+
               write(11,"('elevation_corr         ='
      &                   ,f8.3)")0.0
- 
+
               write(11,"('range_delay_corr       ='
      &                   ,f8.3)")range_delay_corr_aft
- 
+
               write(11,"('longitude_corr         ='
      &                   ,f8.3)")0.0
               write(11,"('latitude_corr          ='
@@ -1961,7 +1961,7 @@ c Write the aft cafc file
      &                   ,f8.3)")0.0
               write(11,"('ew_gndspd_corr         ='
      &                   ,f8.3)")ew_gndspd_corr
- 
+
               write(11,"('ns_gndspd_corr         ='
      &                   ,f8.3)")0.0
               write(11,"('vert_vel_corr          ='
@@ -1978,7 +1978,7 @@ c Write the aft cafc file
      &                   ,f8.3)")rot_angle_corr_aft
               write(11,"('tilt_corr              ='
      &                   ,f8.3)")tilt_corr_aft
- 
+
               close(11)
 
 c Write the fore cafc file
@@ -2063,7 +2063,7 @@ c
 	  endif
 c
 c******************************************************************
-c**** END OF "SIS_EL_*" FILE #50 
+c**** END OF "SIS_EL_*" FILE #50
 c******************************************************************
 c
           print *,' '
@@ -2171,7 +2171,7 @@ c
       nb_ray(iradar_ray)=nb_ray(iradar_ray)+1
 c
 c******************************************************************
-c**** FRENCH->ENGLISH TRANSLATIONS 
+c**** FRENCH->ENGLISH TRANSLATIONS
 c**** CONSTANT CORRECTIONS READ ON THE TAPE
 c******************************************************************
 c
@@ -2200,7 +2200,7 @@ c     &         , corr_lon(iradar_ray),corr_lat(iradar_ray)
 c     &         ,corr_p_alt(iradar_ray),corr_roul(iradar_ray)
 c     &         ,corr_tang(iradar_ray),corr_cap(iradar_ray)
 c     &         ,corr_derv(iradar_ray),corr_rota(iradar_ray)
-c     &         , corr_incl(iradar_ray)  
+c     &         , corr_incl(iradar_ray)
 c
 c******************************************************************
 c**** EARTH-RELATIVE ANGLES AND
@@ -2324,7 +2324,7 @@ c therefore, following are the new code:
 c------------------------------------------------------------------
       do ig=1,ngates
          dgate_corr(ig)=d_porte((iradar_ray-1)*MAXPORT+ig)   ! Mod Oliv
-     &                  +corr_dist(iradar_ray)+d_dgate_guess 
+     &                  +corr_dist(iradar_ray)+d_dgate_guess
       enddo
       ddg=dgate_corr(2)-dgate_corr(1)
 c
@@ -2367,7 +2367,7 @@ c
       sxa(iradar_ray)=sxa(iradar_ray)+x_acft
       sya(iradar_ray)=sya(iradar_ray)+y_acft
       sza(iradar_ray)=sza(iradar_ray)+z_acft
-      stime(iradar_ray)=stime(iradar_ray)+time_ks 
+      stime(iradar_ray)=stime(iradar_ray)+time_ks
       ssc(iradar_ray)=ssc(iradar_ray)+shdg
       scc(iradar_ray)=scc(iradar_ray)+chdg
       dmax=amin1(dmax0,dgate_corr(ngates))
@@ -2518,24 +2518,24 @@ c******************************************************************
 	 if(ze(ig).gt.-900.)then
 c CAI-START: get rid of all Oliver's modification, since it is for P3
 c          if(ichoice_vdop.eq.1)then		! Olivier
-c            if(     abs(vr(ig)).gt.0.		
-c    &          .and.abs(vr(ig)).lt.vdop_max	
-c    &          .and.abs(vs(ig)).gt.0.		
-c    &          .and.abs(vs(ig)).lt.vdop_max	
-c    &          .and.abs(vl(ig)).gt.0.		
-c    &          .and.abs(vl(ig)).lt.vdop_max	
+c            if(     abs(vr(ig)).gt.0.
+c    &          .and.abs(vr(ig)).lt.vdop_max
+c    &          .and.abs(vs(ig)).gt.0.
+c    &          .and.abs(vs(ig)).lt.vdop_max
+c    &          .and.abs(vl(ig)).gt.0.
+c    &          .and.abs(vl(ig)).lt.vdop_max
 c    &          .and.proj_acftspd.gt.-900.   )then
 c
 c               d_vs_vl=vs(ig)-vl(ig)		! Olivier
 c               kvsl=ifix((d_vs_vl/vnyq_el)*0.5)+5	! Olivier
 
 c               if(kvsl.ge.1.and.kvsl.le.9)then		! Olivier
-c                 vs_depl=vs(ig)+xms(kvsl)*vnyq_el	
-c                 vl_depl=vl(ig)+xml(kvsl)*vnyq_el	
+c                 vs_depl=vs(ig)+xms(kvsl)*vnyq_el
+c                 vl_depl=vl(ig)+xml(kvsl)*vnyq_el
 c                 vsl_depl=(vs_depl+vl_depl)/2.		! Olivier
 
 c               if(    abs(vs_depl-vl_depl).lt.vnyq_el/2.
-c    &		    .and.abs(vr(ig)-vsl_depl).lt.vnyq_el/2.     )then 
+c    &		    .and.abs(vr(ig)-vsl_depl).lt.vnyq_el/2.     )then
 c          	    vdop_read=vr(ig)+proj_acftspd
 c                   nbon=nbon+1
 c               else
@@ -2549,8 +2549,8 @@ c              endif
 c             endif					! Olivier
 c            endif					! Olivier
 
-c	      if(     abs(vr(ig)).gt.0.			
-c    &		 .and.abs(vr(ig)).lt.vdop_max		
+c	      if(     abs(vr(ig)).gt.0.
+c    &		 .and.abs(vr(ig)).lt.vdop_max
 c    &	         .and.proj_acftspd.gt.-900.     )then	! Olivier
 c		 vdop_read=vr(ig)+proj_acftspd		! Olivier
 c	      endif					! Olivier
@@ -2562,10 +2562,10 @@ c	    endif					! Olivier
      &         vdop_read=vr(ig)+proj_acftspd
 c CAI-STOP
 
- 
+
            if(     ichoice_vdop.eq.2
-     &        .and.abs(vg(ig)).gt.0..and.abs(vg(ig)).lt.vdop_max)
-     &       vdop_read=vg(ig)
+     &        .and.abs(vr(ig)).gt.0..and.abs(vr(ig)).lt.vdop_max)
+     &       vdop_read=vr(ig)
 
            if(     ichoice_vdop.eq.3
      &        .and.abs(vu(ig)).gt.0..and.abs(vu(ig)).lt.vdop_max)
@@ -2582,7 +2582,7 @@ c CAI-STOP
 c******************************************************************
 c**** ( if     ( KZsurf=1  or  KVsurf=1 )
 c****      and  Z_ACFT > Z_ACFTmin
-c****      and SIN(ELEV_HOR) < SELH_SURF 
+c****      and SIN(ELEV_HOR) < SELH_SURF
 c****      and  VFF_AV>0 )
 c****  -> DETERMINE ALTITUDE (THEN DOPPLER VELOCITY)
 c****     OF THE SURFACE FOR THIS RAY
@@ -2678,7 +2678,7 @@ c
              endif
              z_prevgate=z_ig
              dhor_prevgate=dhor_ig
-           endif  
+           endif
         enddo
 c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 c!!!!      if( nb_ray(iradar_ray).eq.10*(nb_ray(iradar_ray)/10) )then
@@ -2933,7 +2933,7 @@ c
 c******************************************************************
 c**** ADD WEIGHTS AND DZ_surf
 c******************************************************************
-c 
+c
                 n_dzsurf(iradar_ray)=n_dzsurf(iradar_ray)+1
                 swdzsurf_sweep(iradar_ray)
      &           =swdzsurf_sweep(iradar_ray)+wghtsurf_ray
@@ -2949,7 +2949,7 @@ c
  	        swdzmsurf_tot=swdzmsurf_tot
      &                       +wghtsurf_ray*d_hsurf
 	        swdz2surf_tot=swdz2surf_tot
-     &                       +wghtsurf_ray*d_hsurf*d_hsurf	   
+     &                       +wghtsurf_ray*d_hsurf*d_hsurf
                 swadzsurf_tot=swadzsurf_tot
      &                        +wghtsurf_ray*abs(d_hsurf)
 c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3138,7 +3138,7 @@ c
 c
 c******************************************************************
 c**** (if IWRISURFILE=1)
-c**** WEIGHTED SUM FOR ALT_SURF(x,y) 
+c**** WEIGHTED SUM FOR ALT_SURF(x,y)
 c**** TO BE WRITTEN ON "SURF_EL_*" FILE #30
 c******************************************************************
 c
@@ -3186,7 +3186,7 @@ c
 c******************************************************************
 c**** CASE "VDOP_surf"
 c******************************************************************
-c 
+c
   	      if(kvsurf.eq.1.and.acftspd_hor.gt.0.)then
 c
                 if(vdop_corr(ig_refmax).gt.-900..or.isim.eq.1)then
@@ -3209,7 +3209,7 @@ c	v_ctrl=-999.				! Olivier
 c
 c	d_vs_vl=vs(ig_refmax)-vl(ig_refmax)	! Olivier
 c	kvsl=ifix((d_vs_vl/vnyq_el)*0.5)+5	! Olivier
-c        print *,'    d_VS_VL :',d_vs_vl,' -> KVSL :',kvsl	
+c        print *,'    d_VS_VL :',d_vs_vl,' -> KVSL :',kvsl
 c	if(kvsl.ge.1.and.kvsl.le.9)then		! Olivier
 c	  vs_depl=vs(ig_refmax)+xms(kvsl)*vnyq_el	! Olivier
 c	  vl_depl=vl(ig_refmax)+xml(kvsl)*vnyq_el	! Olivier
@@ -3491,7 +3491,7 @@ c
 	     d_ig=dgate_corr(ig)
 	     if(     ze(ig).gt.-900.
      &          .and.vdop_corr(ig).gt.-900.)then
-c              
+c
 	       xis=0.
 	       svis=0.
 	       xrad=0.
@@ -3573,7 +3573,7 @@ c     &     .and.abs(vs(ig)).gt.0.
 c     &     .and.abs(vs(ig)).lt.vdop_max
 c     &     .and.abs(vl(ig)).gt.0.
 c     &     .and.abs(vl(ig)).lt.vdop_max
-c     &     .and.proj_acftspd.gt.-900.   
+c     &     .and.proj_acftspd.gt.-900.
 c     &     .and.dgate_corr(ig).lt.10.
 c     &     .and.elhor_ray.lt.5.
 c     &     .and.elhor_ray.gt.-5.     )then	! 111111
@@ -3585,7 +3585,7 @@ c         vs_depl=vs(ig)+xms(kvsl)*vnyq_el       ! Olivier
 c         vl_depl=vl(ig)+xml(kvsl)*vnyq_el       ! Olivier
 c         vsl_depl=(vs_depl+vl_depl)/2.         ! Olivier
 c
-c         if(     abs(vs_depl-vl_depl).lt.vnyq_el/2. 
+c         if(     abs(vs_depl-vl_depl).lt.vnyq_el/2.
 c c    &      .and.abs(vr(ig)-vsl_depl).lt.vnyq_el/2.     )then ! 112 Oliv
 c		print *,'IG= ',ig
 c		print *,'VR= ',vr(ig)
@@ -3671,7 +3671,7 @@ c
      &                         +wghtinsitu_ig*dv_dopinsitu
 	       swdv2insitu_tot=swdv2insitu_tot
      &                         +wghtinsitu_ig
-     &                          *dv_dopinsitu*dv_dopinsitu   
+     &                          *dv_dopinsitu*dv_dopinsitu
                swadvinsitu_tot=swadvinsitu_tot
      &                         +wghtinsitu_ig*abs(dv_dopinsitu)
 c
@@ -3821,7 +3821,7 @@ c
      &                 =side*dgate_corr(ig)*celh
                vi_vdop(iradar_ray,n_dvinsitu(iradar_ray))=vdop
                vi_vinsitu(iradar_ray,n_dvinsitu(iradar_ray))=proj_wind
-c 
+c
              endif  !!  of  !!  if(abs(dv_dopinsitu).lt.dvdopinsitu_max)  !!
 c
            endif  !!  of  !!  if(ze(ig).gt.-900. ... )  !!
@@ -3847,7 +3847,7 @@ c
 c******************************************************************
 c
 c**** CALCULATE DIRECTOR COSINES, AZIM_EST ET DE ELEV_HOR
-c**** FROM LEE ET AL. (JTech, 1994, 11, 572-578) 
+c**** FROM LEE ET AL. (JTech, 1994, 11, 572-578)
 c
 c******************************************************************
 c
@@ -3936,7 +3936,7 @@ c
             if(sp(i,j).gt.spmin)then
               sz(i,j)=sz(i,j)/sp(i,j)
               nin=nin+1
-	    else       
+	    else
 	      sz(i,j)=-999.
             endif
          enddo
@@ -3957,7 +3957,7 @@ c
 	      x(n)=float(i)
 	      y(n)=sz(i,j)
             endif
-         enddo 
+         enddo
   2      if(n.ge.nmin)then
 	   q1=(y(2)-y(1))/(x(2)-x(1))
 	   qn=(y(n)-y(n-1))/(x(n)-x(n-1))
@@ -3991,7 +3991,7 @@ c
 	      x(n)=float(j)
 	      y(n)=sz(i,j)
             endif
-         enddo 
+         enddo
   4      if(n.ge.nmin)then
 	   q1=(y(2)-y(1))/(x(2)-x(1))
 	   qn=(y(n)-y(n-1))/(x(n)-x(n-1))
@@ -4027,7 +4027,7 @@ c
       subroutine spline(x,u,s,del,q1,qn,n)
       dimension x(1000),u(1000),s(1000),del(1000)
       dimension a(1000),v(1000)
-c 
+c
       del(2)=x(2)-x(1)
       v(1)=6.*(((u(2)-u(1))/del(2))-q1)
       n1=n-1
@@ -4049,13 +4049,13 @@ c
       c=del(n)/a(n1)
       a(n)=2.*del(n)-c*del(n)
       v(n)=v(n)-c*v(n1)
-c 
+c
       s(n)=v(n)/a(n)
       do j=1,n1
          i=n-j
          s(i)=(v(i)-del(i+1)*s(i+1))/a(i)
       enddo
-c 
+c
        return
       end
 c
@@ -4064,7 +4064,7 @@ c
 c**** FUNCTION SPLIN
 c
 c****************************************************************************
-c 
+c
       function splin(v,x,u,s,del,q1,qn,n)
       dimension x(1000),u(1000),s(1000),del(1000)
 c
