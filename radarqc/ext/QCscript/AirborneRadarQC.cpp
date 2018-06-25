@@ -3200,7 +3200,7 @@ void AirborneRadarQC::probGroundGates(const QString& oriFieldName, const QString
     DEM asterDEM;
     GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
 	if (!demFileName.isEmpty()) {
-        if(!asterDEM.readDem(demFileName.toAscii().data())) {
+        if(!asterDEM.readDem(demFileName.toLatin1().data())) {
             printf("Error reading DEM file! Using flat ground instead\n");
         } else {
             demFlag = true;
@@ -3323,7 +3323,7 @@ void AirborneRadarQC::probGroundGates(float** field, const float& eff_beamwidth,
     DEM asterDEM;
     GeographicLib::TransverseMercatorExact tm = GeographicLib::TransverseMercatorExact::UTM;
 	if (!demFileName.isEmpty()) {
-        if(!asterDEM.readDem(demFileName.toAscii().data())) {
+        if(!asterDEM.readDem(demFileName.toLatin1().data())) {
             printf("Error reading DEM file! Using flat ground instead\n");
         } else {
             demFlag = true;
