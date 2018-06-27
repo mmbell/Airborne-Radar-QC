@@ -8,6 +8,12 @@
 
 #include "Dorade.h"
 
+// TODO I don't know where these values used to come from.
+// The code doesn't compile without them bpmelli 6/27/18
+
+#define TRUE	1
+#define FALSE	0
+
 Dorade::Dorade() 
 {
 	swap_bytes = false;
